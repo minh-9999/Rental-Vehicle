@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Results</title>
+    <style>
+      body {
+        font-family: "Courier New", Courier, monospace;
+        background-color: #f7f7f7;
+        color: #333;
+      }
+
+      .pass {
+        color: #28a745; /* green */
+      }
+
+      .fail {
+        color: #dc3545; /* red */
+      }
+
+      .pending {
+        color: #fd7e14; /* orange */
+      }
+
+      .test-case {
+        margin-bottom: 10px;
+      }
+
+      .test-case p {
+        font-size: 16px;
+        margin: 5px 0;
+      }
+
+      .test-case .status {
+        font-weight: bold;
+      }
+
+      #test-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      input[type="file"] {
+        margin: 20px 0;
+      }
+
+      .loader {
+        display: none;
+        border: 16px solid #f3f3f3;
+        border-top: 16px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Test Results</h1>
+    <!-- Label for file input -->
+    <label for="fileInput">Choose file</label>
+    <input type="file" id="fileInput" />
+    <div id="loader" class="loader"></div>
+
+    <div id="test-container">
+      <h2>Test Suites</h2>
+    </div>
+
+    <script>
+      document
+        .getElementById("fileInput")
+        .addEventListener("change", handleFileSelect, false);
+
+      function handleFileSelect(event) {
+        const file = event.target.files[0];
+
+        if (file && file.name.endsWith(".xml")) {
+          document.getElementById("loader").style.display = "block"; // Show loading spinner
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const xmlString = e.target.result;
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "application/xml");
+            const testResults = parseTestResults(xmlDoc);
+            renderTestResults(testResults);
+            document.getElementById("loader").style.display = "none"; // Hide loading spinner
+          };
+          reader.readAsText(file);
+        } else {
+          alert("Please select a valid XML file.");
+        }
+      }
+
+      function parseTestResults(xmlDoc) {
+        const testResults = {
+          suites: [],
+        };
+
+        const testSuites = xmlDoc.getElementsByTagName("testsuite");
+        for (let i = 0; i < testSuites.length; i++) {
+          const suite = testSuites[i];
+          const suiteData = {
+            name: suite.getAttribute("name"),
+            tests: [],
+          };
+
+          const testCases = suite.getElementsByTagName("testcase");
+          for (let j = 0; j < testCases.length; j++) {
+            const testCase = testCases[j];
+            const status =
+              testCase.getElementsByTagName("failure").length > 0
+                ? "fail"
+                : testCase.getElementsByTagName("skipped").length > 0
+                ? "pending"
+                : "pass";
+
+            suiteData.tests.push({
+              name: testCase.getAttribute("name"),
+              time: testCase.getAttribute("time"),
+              status: status,
+            });
+          }
+
+          testResults.suites.push(suiteData);
+        }
+
+        return testResults;
+      }
+
+      function renderTestResults(testResults) {
+        const testContainer = document.getElementById("test-container");
+        testContainer.innerHTML = ""; // Clear previous results
+
+        testResults.suites.forEach((suite) => {
+          const suiteDiv = document.createElement("div");
+          suiteDiv.innerHTML = `<h3>${suite.name}</h3>`;
+          suite.tests.forEach((testCase) => {
+            const testCaseDiv = document.createElement("div");
+            testCaseDiv.classList.add("test-case");
+            testCaseDiv.classList.add(testCase.status);
+
+            const statusText = {
+              pass: "✅ Passed",
+              fail: "❌ Failed",
+              pending: "⏳ Pending",
+            };
+
+            testCaseDiv.innerHTML = `
+                        <p class="name">${testCase.name}</p>
+                        <p class="status">${statusText[testCase.status]}</p>
+                        <p class="time">Time: ${testCase.time}s</p>
+                    `;
+            suiteDiv.appendChild(testCaseDiv);
+          });
+          testContainer.appendChild(suiteDiv);
+        });
+      }
+    </script>
+  </body>
+</html>

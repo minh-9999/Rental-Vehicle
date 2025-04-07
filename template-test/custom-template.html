@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JUnit Test Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Fira Code", monospace;
+        margin: 0;
+        padding: 0;
+        background-color: #ffffff;
+        color: #333;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      .dark-mode {
+        background-color: #1e1e1e;
+        color: #f5f5f5;
+      }
+
+      header {
+        padding: 1rem;
+        background: #4caf50;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .mode-toggle {
+        cursor: pointer;
+        background: none;
+        border: none;
+        color: inherit;
+        font-size: 1.2rem;
+      }
+
+      .stats {
+        padding: 1rem;
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+
+      .chart-container {
+        width: 200px;
+        height: 200px;
+      }
+
+      .filters,
+      .search {
+        padding: 0 1rem 1rem;
+      }
+
+      .search input {
+        width: 100%;
+        padding: 0.5rem;
+        font-family: inherit;
+        font-size: 1rem;
+      }
+
+      .test-case {
+        border: 1px solid #ccc;
+        margin: 1rem;
+        padding: 1rem;
+        border-left: 5px solid;
+        transition: transform 0.3s;
+      }
+
+      .pass {
+        border-color: #4caf50;
+        background-color: #e8f5e9;
+      }
+
+      .fail {
+        border-color: #f44336;
+        background-color: #ffebee;
+        animation: shake 0.3s;
+      }
+
+      .skip {
+        border-color: #ff9800;
+        background-color: #fff3e0;
+      }
+
+      @keyframes shake {
+        0% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        50% {
+          transform: translateX(5px);
+        }
+        75% {
+          transform: translateX(-5px);
+        }
+        100% {
+          transform: translateX(0);
+        }
+      }
+
+      .icon {
+        margin-right: 0.5rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>🧪 Test Report</h1>
+      <button class="mode-toggle" onclick="toggleMode()">🌗 Toggle Mode</button>
+    </header>
+
+    <section class="stats">
+      <div class="chart-container">
+        <canvas id="resultChart"></canvas>
+      </div>
+      <div>
+        <p>✅ Passed: <span id="passCount"></span></p>
+        <p>❌ Failed: <span id="failCount"></span></p>
+        <p>⏳ Skipped: <span id="skipCount"></span></p>
+      </div>
+    </section>
+
+    <section class="search">
+      <input
+        type="text"
+        placeholder="🔍 Search test cases..."
+        oninput="searchTests(this.value)"
+      />
+    </section>
+
+    <section id="testList"></section>
+
+    <audio
+      id="clickSound"
+      src="https://www.soundjay.com/buttons/sounds/button-16.mp3"
+    ></audio>
+
+    <script>
+      const testResults = [
+        { name: "CreateVehicle", status: "pass" },
+        { name: "RentAndReturn", status: "pass" },
+        { name: "LoadFromJsonWithAvailable", status: "pass" },
+        { name: "SaveToJsonWithAvailable", status: "fail" },
+        { name: "LoadFromJson_MissingFields", status: "skip" },
+      ];
+
+      const chart = new Chart(document.getElementById("resultChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["Passed", "Failed", "Skipped"],
+          datasets: [
+            {
+              label: "Test Results",
+              data: [
+                testResults.filter((t) => t.status === "pass").length,
+                testResults.filter((t) => t.status === "fail").length,
+                testResults.filter((t) => t.status === "skip").length,
+              ],
+              backgroundColor: ["#4CAF50", "#f44336", "#ff9800"],
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            legend: {
+              position: "bottom",
+            },
+          },
+        },
+      });
+
+      function toggleMode() {
+        document.body.classList.toggle("dark-mode");
+      }
+
+      function playClick() {
+        document.getElementById("clickSound").play();
+      }
+
+      function renderTests(tests) {
+        const list = document.getElementById("testList");
+        list.innerHTML = "";
+        tests.forEach((t) => {
+          const div = document.createElement("div");
+          div.className = `test-case ${t.status}`;
+          div.innerHTML = `<strong class="icon">${iconFor(t.status)}</strong> ${
+            t.name
+          }`;
+          div.onclick = playClick;
+          list.appendChild(div);
+        });
+
+        document.getElementById("passCount").textContent = tests.filter(
+          (t) => t.status === "pass"
+        ).length;
+        document.getElementById("failCount").textContent = tests.filter(
+          (t) => t.status === "fail"
+        ).length;
+        document.getElementById("skipCount").textContent = tests.filter(
+          (t) => t.status === "skip"
+        ).length;
+      }
+
+      function iconFor(status) {
+        switch (status) {
+          case "pass":
+            return "✅";
+          case "fail":
+            return "❌";
+          case "skip":
+            return "⏳";
+          default:
+            return "❓";
+        }
+      }
+
+      function searchTests(keyword) {
+        const filtered = testResults.filter((t) =>
+          t.name.toLowerCase().includes(keyword.toLowerCase())
+        );
+        renderTests(filtered);
+      }
+
+      renderTests(testResults);
+    </script>
+  </body>
+</html>

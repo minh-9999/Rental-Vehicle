@@ -1,0 +1,68 @@
+name: C++ CI/CD with GitHub Releases
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential
+
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: choco install -y cmake ninja llvm gnu
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: brew install cmake ninja llvm
+
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+          # Run tests
+          ctest -R "Integration" --output-on-failure
+
+      - name: Upload Integration Test Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: integration-test-report
+          path: build/logs/integration_test_results.xml
+
+      - name: Upload binary as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Rental-Vehicle-${{ matrix.os }}
+          path: build/Rental-Vehicle # change "my_program" into the name of your binary
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download all binaries
+        uses: actions/download-artifact@v3
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            my_program-ubuntu-latest/Rental-Vehicle
+            my_program-windows-latest/Rental-Vehicle.exe
+            my_program-macos-latest/Rental-Vehicle
+          tag_name: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
