@@ -2,10 +2,10 @@ name: C++ CI/CD with GitHub Releases
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches: [dev, main] # Run CI on push to dev or main
+    tags: ["v*.*.*"] # Trigger release workflow on version tag
   pull_request:
-    branches: [main]
+    branches: [main] # Run CI on pull requests to main
 
 jobs:
   build:
@@ -15,9 +15,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
+      # Install dependencies per platform
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: sudo apt update && sudo apt install -y cmake ninja-build llvm clang-format build-essential
@@ -30,40 +31,42 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install cmake ninja llvm clang-format
 
-      - name: Lint (clang-format check)
-        run: |
-          clang-format --dry-run --Werror $(find . -name '*.cpp' -o -name '*.h')
+      # Lint using clang-format
+      - name: Style check (clang-format)
+        run: clang-format --dry-run --Werror $(find . -name '*.cpp' -o -name '*.h')
 
+      # Configure and build project
       - name: Configure & Build
         run: |
           mkdir build && cd build
           cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --config Release
 
+      # Run unit tests
       - name: Run Unit Tests
-        run: |
-          cd build
-          ctest -R "Unit" --output-on-failure
+        run: cd build && ctest -R "Unit" --output-on-failure
 
+      # Run integration tests
       - name: Run Integration Tests
-        run: |
-          cd build
-          ctest -R "Integration" --output-on-failure
+        run: cd build && ctest -R "Integration" --output-on-failure
 
+      # Upload test results (optional)
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
         with:
           name: test-report-${{ matrix.os }}
           path: build/logs/
 
-      - name: Package Binary
+      # Package the binary into a .tar.gz
+      - name: Package Binary (.tar.gz)
         run: |
           mkdir -p package
           cp build/Rental-Vehicle* package/
           tar -czf Rental-Vehicle-${{ matrix.os }}.tar.gz -C package .
         shell: bash
 
-      - name: Upload Artifact
+      # Upload packaged binary as artifact
+      - name: Upload Binary Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Rental-Vehicle-${{ matrix.os }}
@@ -72,10 +75,10 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') # Only run on version tags like v1.0.0
 
     steps:
-      - name: Download all artifacts
+      - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -83,6 +86,7 @@ jobs:
       - name: Show downloaded files
         run: ls -R artifacts
 
+      # Create a GitHub release with artifacts and changelog
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
