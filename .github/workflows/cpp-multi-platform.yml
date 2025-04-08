@@ -1,68 +1,94 @@
 name: C++ CI/CD with GitHub Releases
 
-on: [push, pull_request]
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches: [main]
 
 jobs:
   build:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v3
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential
+        run: sudo apt update && sudo apt install -y cmake ninja-build llvm clang-format build-essential
 
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
-        run: choco install -y cmake ninja llvm gnu
+        run: choco install -y cmake ninja llvm
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install cmake ninja llvm
+        run: brew install cmake ninja llvm clang-format
 
-      - name: Build
+      - name: Lint (clang-format check)
         run: |
-          mkdir build
-          cd build
+          clang-format --dry-run --Werror $(find . -name '*.cpp' -o -name '*.h')
+
+      - name: Configure & Build
+        run: |
+          mkdir build && cd build
           cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --config Release
-          # Run tests
+
+      - name: Run Unit Tests
+        run: |
+          cd build
+          ctest -R "Unit" --output-on-failure
+
+      - name: Run Integration Tests
+        run: |
+          cd build
           ctest -R "Integration" --output-on-failure
 
-      - name: Upload Integration Test Report
-        uses: actions/upload-artifact@v2
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v4
         with:
-          name: integration-test-report
-          path: build/logs/integration_test_results.xml
+          name: test-report-${{ matrix.os }}
+          path: build/logs/
 
-      - name: Upload binary as artifact
-        uses: actions/upload-artifact@v2
+      - name: Package Binary
+        run: |
+          mkdir -p package
+          cp build/Rental-Vehicle* package/
+          tar -czf Rental-Vehicle-${{ matrix.os }}.tar.gz -C package .
+        shell: bash
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: Rental-Vehicle-${{ matrix.os }}
-          path: build/Rental-Vehicle # change "my_program" into the name of your binary
+          path: Rental-Vehicle-${{ matrix.os }}.tar.gz
 
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
-      - name: Download all binaries
-        uses: actions/download-artifact@v3
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Show downloaded files
+        run: ls -R artifacts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            my_program-ubuntu-latest/Rental-Vehicle
-            my_program-windows-latest/Rental-Vehicle.exe
-            my_program-macos-latest/Rental-Vehicle
-          tag_name: latest
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: artifacts/Rental-Vehicle-*/Rental-Vehicle-*.tar.gz
+          body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
