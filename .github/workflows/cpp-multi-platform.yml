@@ -21,7 +21,7 @@ jobs:
       # Install dependencies per platform
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt update && sudo apt install -y cmake ninja-build llvm clang-format build-essential
+        run: sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential
 
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
@@ -29,7 +29,7 @@ jobs:
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install cmake ninja llvm clang-format
+        run: brew install cmake ninja llvm
 
       # Lint using clang-format
       - name: Style check (clang-format)
