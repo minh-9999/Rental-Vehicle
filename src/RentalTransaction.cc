@@ -30,11 +30,29 @@ string getTimeZoneName()
 
 string getUTCOffset()
 {
+#ifdef _WIN32
     TIME_ZONE_INFORMATION tzInfo;
     GetTimeZoneInformation(&tzInfo);
     int bias = -tzInfo.Bias / 60; // Độ lệch so với UTC (phút -> giờ)
 
     return string("UTC") + (bias >= 0 ? "+" : "") + to_string(bias);
+
+#else
+    time_t now = time(nullptr);
+    struct tm local_tm;
+    localtime_r(&now, &local_tm);
+
+    // offset in seconds
+    int offset = local_tm.tm_gmtoff;
+    int hours = offset / 3600;
+    int minutes = abs((offset % 3600) / 60);
+
+    ostringstream oss;
+    oss << "UTC" << (hours >= 0 ? "+" : "-")
+        << setw(2) << setfill('0') << abs(hours)
+        << ":" << setw(2) << setfill('0') << minutes;
+    return oss.str();
+#endif
 }
 
 void writeLog(const RentalTransaction &tx)

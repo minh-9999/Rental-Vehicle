@@ -38,8 +38,19 @@ endif()
 # Add include_directories manually if needed
 # include_directories(${PROJECT_SOURCE_DIR}/third_party/fmt/include)
 
+# ==================== MACRO ====================
+macro(add_safe_executable target_name file_name)
+  set(full_path "${CMAKE_CURRENT_SOURCE_DIR}/${file_name}")
+
+  if(EXISTS ${full_path})
+    add_executable(${target_name} ${file_name})
+  else()
+    message(FATAL_ERROR "❌ Source file '${file_name}' not found in ${CMAKE_CURRENT_SOURCE_DIR}")
+  endif()
+endmacro()
+
 # ==================== UNIT TEST ====================
-add_executable(
+add_safe_executable(
   UnitTests
   test_UnitVehicle.cc
   test_UnitDataJson.cc
@@ -64,7 +75,10 @@ target_link_libraries(
 )
 
 # ==================== INTEGRATION TEST ====================
-add_executable(IntegrationTests test_Integration.cc)
+add_safe_executable(
+  IntegrationTests
+  test_Integration.cc
+)
 
 # fix warning for GoogleTest
 # target_compile_definitions(
