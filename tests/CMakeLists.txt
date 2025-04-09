@@ -32,8 +32,11 @@ endif()
 
 # find_package(GTest CONFIG REQUIRED)
 
-# Link fmt if needed
-find_package(fmt REQUIRED)
+# Link fmt if needed, remove this line if you're not using system-installed fmt
+# find_package(fmt REQUIRED)
+
+# Add include_directories manually if needed
+# include_directories(${PROJECT_SOURCE_DIR}/third_party/fmt/include)
 
 # ==================== UNIT TEST ====================
 add_executable(
@@ -102,7 +105,7 @@ add_test(
 # set_tests_properties(IntegrationTest PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:rental_lib>")
 # endif()
 
-# Cấu hình chạy tests và xuất kết quả ra XML
+# comfigure run tests and export results to XML
 add_test(
   NAME IntegrationTests
   COMMAND integration_tests --gtest_output=xml:${CMAKE_BINARY_DIR}/logs/integration_test_results.xml
