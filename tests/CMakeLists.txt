@@ -64,7 +64,7 @@ target_link_libraries(
 )
 
 # ==================== INTEGRATION TEST ====================
-add_executable(IntegrationTests test_integration.cc)
+add_executable(IntegrationTests test_Integration.cc)
 
 # fix warning for GoogleTest
 # target_compile_definitions(
