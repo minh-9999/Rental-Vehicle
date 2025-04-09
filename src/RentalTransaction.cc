@@ -4,21 +4,28 @@
 #include "dataJson.h"
 #include "safe_localtime.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 // string jsondata = "vehicle.json";
 string LOG = "rental_log.txt";
 
 string getTimeZoneName()
 {
+#ifdef _WIN32
     TIME_ZONE_INFORMATION tzInfo;
     GetTimeZoneInformation(&tzInfo);
-    wchar_t *wname = tzInfo.StandardName;
 
-    // Convert from wchar_t* to string
-    char name[60];
-    // wcstombs(name, wname, sizeof(name));
+    char name[64];
     size_t converted;
     wcstombs_s(&converted, name, sizeof(name), tzInfo.StandardName, _TRUNCATE);
-    return string(name);
+    return std::string(name);
+#else
+    time_t now = time(nullptr);
+    struct tm *localTime = localtime(&now);
+    return (localTime && localTime->tm_zone) ? std::string(localTime->tm_zone) : "Unknown";
+#endif
 }
 
 string getUTCOffset()

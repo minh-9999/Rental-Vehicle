@@ -10,7 +10,9 @@
 #include <unordered_map>
 #include <vector>
 #include <locale.h> // Required for setlocale()
-#include <windows.h>
+
+
+
 #include <utility>
 #include "rental_export.h"
 
