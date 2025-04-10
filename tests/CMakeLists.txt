@@ -39,14 +39,25 @@ endif()
 # include_directories(${PROJECT_SOURCE_DIR}/third_party/fmt/include)
 
 # ==================== MACRO ====================
-macro(add_safe_executable target_name file_name)
-  set(full_path "${CMAKE_CURRENT_SOURCE_DIR}/${file_name}")
+macro(add_safe_executable target_name)
+  set(sources ${ARGN})
 
-  if(EXISTS ${full_path})
-    add_executable(${target_name} ${file_name})
-  else()
-    message(FATAL_ERROR "❌ Source file '${file_name}' not found in ${CMAKE_CURRENT_SOURCE_DIR}")
+  if(sources STREQUAL "")
+    message(FATAL_ERROR "❌ No source files provided for target '${target_name}'")
   endif()
+
+  foreach(file_name IN LISTS sources)
+    set(full_path "${CMAKE_CURRENT_SOURCE_DIR}/${file_name}")
+
+    if(NOT EXISTS ${full_path})
+      message(FATAL_ERROR "🚫 File not found: '${file_name}' in ${CMAKE_CURRENT_SOURCE_DIR}")
+    else()
+      message(STATUS "✅ Found source file: ${file_name}")
+    endif()
+  endforeach()
+
+  add_executable(${target_name} ${sources})
+  message(STATUS "🎯 Added target '${target_name}' with ${CMAKE_ARGC} source files")
 endmacro()
 
 # ==================== UNIT TEST ====================
