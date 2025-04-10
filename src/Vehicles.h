@@ -16,6 +16,7 @@
 
 using namespace std;
 
+extern string jsondata;
 extern string LOG;
 
 struct Vehicles
@@ -67,7 +68,6 @@ void findVehicle(const unordered_map<string, Vehicles> &);
 void deleteVehicle(unordered_map<string, Vehicles> &);
 void saveList(const unordered_map<string, Vehicles> &);
 void loadList(unordered_map<string, Vehicles> &);
-
 
 // Rental transaction structure
 struct RentalTransaction

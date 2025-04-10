@@ -20,11 +20,11 @@ string getTimeZoneName()
     char name[64];
     size_t converted;
     wcstombs_s(&converted, name, sizeof(name), tzInfo.StandardName, _TRUNCATE);
-    return std::string(name);
+    return string(name);
 #else
     time_t now = time(nullptr);
     struct tm *localTime = localtime(&now);
-    return (localTime && localTime->tm_zone) ? std::string(localTime->tm_zone) : "Unknown";
+    return (localTime && localTime->tm_zone) ? string(localTime->tm_zone) : "Unknown";
 #endif
 }
 

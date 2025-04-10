@@ -122,7 +122,7 @@ void loadFromJson(unordered_map<string, Vehicles> &ds, const string &filename)
         }
         catch (const exception &e)
         {
-            fmt::print("\n ⚠️ Error: Vehicle {} has invalid data! Skipping... \n", key);
+            fmt::print("\n ⚠️ Error: Vehicle {} has invalid data! Skipping... ({})\n", key, e.what());
             // cout << "\n ⚠️ Error: Vehicle " << key << " has invalid data! Skipping... \n";
         }
     }

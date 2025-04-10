@@ -282,7 +282,7 @@ void loadList(unordered_map<string, Vehicles> &ds)
     file.close();
 
     // Load data from JSON if needed
-    loadFromJson(ds, "data.json");
+    loadFromJson(ds, jsondata);
 }
 
 // ---------------------------------------------------------------------
