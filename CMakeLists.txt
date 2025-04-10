@@ -78,7 +78,7 @@ target_compile_definitions(rental_lib PRIVATE FMT_HEADER_ONLY=1)
 # Link external libraries to rental_lib
 target_link_libraries(
     rental_lib
-    PRIVATE fmt::fmt-header-only
+    PUBLIC fmt::fmt-header-only
     PRIVATE spdlog::spdlog_header_only
 )
 
