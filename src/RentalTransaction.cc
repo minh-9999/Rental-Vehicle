@@ -127,6 +127,39 @@ void checkTransaction(const vector<RentalTransaction> &transactions, unordered_m
     }
 }
 
+//  for test
+bool tryRentVehicle(unordered_map<string, Vehicles> &ds,
+                    vector<RentalTransaction> &transactions,
+                    const string &customer_id,
+                    const string &vehicle_id)
+{
+    if (customer_id.empty() || vehicle_id.empty())
+        return false;
+
+    auto found = ds.find(vehicle_id);
+    if (found == ds.end())
+        return false;
+
+    Vehicles &vehicle = found->second;
+    if (vehicle.rentalStatus == "RENTED")
+        return false;
+
+    vehicle.rentalStatus = "RENTED";
+    vehicle.renterName = customer_id;
+    vehicle.rentalTimestamp = time(nullptr);
+
+    RentalTransaction tx = {
+        "TX" + to_string(vehicle.rentalTimestamp),
+        customer_id,
+        vehicle_id,
+        vehicle.rentalTimestamp,
+        "RENTED"};
+
+    transactions.push_back(tx);
+    return true;
+}
+// end
+
 void checkRentVehicle(unordered_map<string, Vehicles> &ds, vector<RentalTransaction> &transactions)
 {
     string customer_id, vehicle_id;
@@ -136,53 +169,66 @@ void checkRentVehicle(unordered_map<string, Vehicles> &ds, vector<RentalTransact
     fmt::print("\n Enter vehicle license plate to rent: ");
     cin >> vehicle_id;
 
-    if (customer_id.empty() || vehicle_id.empty())
+    /*
+        if (customer_id.empty() || vehicle_id.empty())
+        {
+            fmt::print("\n ❌ Customer ID or vehicle license plate cannot be empty! \n");
+            return;
+        }
+
+        auto found = ds.find(vehicle_id);
+        if (found == ds.end())
+        {
+            fmt::print("\n ❌ Vehicle with license plate {} not found! \n", vehicle_id);
+            return;
+        }
+
+        Vehicles &vehicle = found->second; // Retrieve vehicle from the list
+
+        if (vehicle.rentalStatus == "RENTED")
+        {
+            fmt::print("\n ❌ Vehicle {} is already rented and cannot be rented again! \n", vehicle_id);
+            return;
+        }
+
+        // Update rental status
+        vehicle.rentalStatus = "RENTED";
+        vehicle.renterName = customer_id;
+        vehicle.rentalTimestamp = time(nullptr); // Store rental timestamp
+
+        // Log rental transaction
+        RentalTransaction tx = {
+            "TX" + to_string(vehicle.rentalTimestamp), // Transaction ID
+            vehicle.renterName,
+            vehicle_id,
+            vehicle.rentalTimestamp,
+            "RENTED"};
+
+        transactions.push_back(tx);
+
+        writeLog(tx);
+
+        // Save data to JSON, check for errors
+        // if (!saveToJson(ds, jsondata))
+        // {
+        //     fmt::print("\n ⚠️ Error saving data to JSON file! \n");
+        //     return;
+        // }
+
+        saveToJson(ds, jsondata);
+        fmt::print("\n ✅ Vehicle {} has been rented by {}. \n", vehicle_id, customer_id);
+    */
+
+    if (tryRentVehicle(ds, transactions, customer_id, vehicle_id))
     {
-        fmt::print("\n ❌ Customer ID or vehicle license plate cannot be empty! \n");
-        return;
+        writeLog(transactions.back());
+        saveToJson(ds, jsondata);
+        fmt::print("\n ✅ Vehicle {} has been rented by {}. \n", vehicle_id, customer_id);
     }
-
-    auto found = ds.find(vehicle_id);
-    if (found == ds.end())
+    else
     {
-        fmt::print("\n ❌ Vehicle with license plate {} not found! \n", vehicle_id);
-        return;
+        fmt::print("\n ❌ Failed to rent vehicle. Check if it's already rented or not found.\n");
     }
-
-    Vehicles &vehicle = found->second; // Retrieve vehicle from the list
-
-    if (vehicle.rentalStatus == "RENTED")
-    {
-        fmt::print("\n ❌ Vehicle {} is already rented and cannot be rented again! \n", vehicle_id);
-        return;
-    }
-
-    // Update rental status
-    vehicle.rentalStatus = "RENTED";
-    vehicle.renterName = customer_id;
-    vehicle.rentalTimestamp = time(nullptr); // Store rental timestamp
-
-    // Log rental transaction
-    RentalTransaction tx = {
-        "TX" + to_string(vehicle.rentalTimestamp), // Transaction ID
-        vehicle.renterName,
-        vehicle_id,
-        vehicle.rentalTimestamp,
-        "RENTED"};
-
-    transactions.push_back(tx);
-
-    writeLog(tx);
-
-    // Save data to JSON, check for errors
-    // if (!saveToJson(ds, jsondata))
-    // {
-    //     fmt::print("\n ⚠️ Error saving data to JSON file! \n");
-    //     return;
-    // }
-
-    saveToJson(ds, jsondata);
-    fmt::print("\n ✅ Vehicle {} has been rented by {}. \n", vehicle_id, customer_id);
 }
 
 void checkReturnVehicle(unordered_map<string, Vehicles> &ds, vector<RentalTransaction> &transactions)

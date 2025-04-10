@@ -11,8 +11,6 @@
 #include <vector>
 #include <locale.h> // Required for setlocale()
 
-
-
 #include <utility>
 #include "rental_export.h"
 
@@ -69,6 +67,7 @@ void findVehicle(const unordered_map<string, Vehicles> &);
 void deleteVehicle(unordered_map<string, Vehicles> &);
 void saveList(const unordered_map<string, Vehicles> &);
 void loadList(unordered_map<string, Vehicles> &);
+
 
 // Rental transaction structure
 struct RentalTransaction

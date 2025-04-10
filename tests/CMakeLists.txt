@@ -112,10 +112,10 @@ add_test(
   COMMAND UnitTests --gtest_color=yes
 )
 
-add_test(
-  NAME IntegrationTest
-  COMMAND IntegrationTests --gtest_color=yes
-)
+# add_test(
+# NAME IntegrationTest
+# COMMAND IntegrationTests --gtest_color=yes
+# )
 
 # ==================== proceed the shared library ====================
 # if(WIN32)
@@ -131,9 +131,15 @@ add_test(
 # endif()
 
 # comfigure run tests and export results to XML
+# add_test(
+# NAME IntegrationTests
+# COMMAND integration_tests --gtest_output=xml:${CMAKE_BINARY_DIR}/logs/integration_test_results.xml
+# )
 add_test(
   NAME IntegrationTests
-  COMMAND integration_tests --gtest_output=xml:${CMAKE_BINARY_DIR}/logs/integration_test_results.xml
+  COMMAND IntegrationTests
+  --gtest_color=yes
+  --gtest_output=xml:${CMAKE_BINARY_DIR}/logs/integration_test_results.xml
 )
 
 # ==================== HTML TEST REPORT ====================
