@@ -38,7 +38,7 @@ TEST(IntegrationTest, TryRentVehicleSuccess)
     unordered_map<string, Vehicles> ds;
     vector<RentalTransaction> txs;
 
-    ds["42H-12345"] = Vehicles("Toyota", 2023, "SUV", "AVAILABLE", 500, 0);
+    ds["42H-12345"] = Vehicles("42H-12345", "Toyota", 2023, "SUV", "AVAILABLE", 500, 0, "");
 
     bool result = tryRentVehicle(ds, txs, "khach123", "42H-12345");
 
