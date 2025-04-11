@@ -2,7 +2,7 @@
 // #include "gtest/gtest.h"
 #include "../src/Vehicles.h"
 #include "../src/config.h"
-#include "../src/capture_stdout.h"
+#include "../third_party/fmt-src/include/fmt/core.h"
 
 struct TestVehicles
 {
