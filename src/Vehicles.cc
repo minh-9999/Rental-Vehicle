@@ -243,7 +243,7 @@ void saveList(const unordered_map<string, Vehicles> &ds)
     saveToJson(ds, jsondata);
 }
 
-void loadList(unordered_map<string, Vehicles> &ds)
+void loadList(unordered_map<string, Vehicles> &vehiclesMap)
 {
     ifstream file("data.txt");
 
@@ -257,32 +257,57 @@ void loadList(unordered_map<string, Vehicles> &ds)
     while (getline(file, line))
     {
         stringstream ss(line);
-        string bS, brand, type, rentalStatus, renterName;
-        unsigned year;
-        double price;
+        string licensePlate, manufacturer, vehicleType, rentalStatus, renterName;
+        unsigned yearOfManufacture;
+        double rentalPrice;
         time_t rentalTimestamp;
 
-        // Read data from text file (format: licensePlate, manufacturer, yearOfManufacture, vehicleType, rentalPrice)
-        getline(ss, bS, ',');
-        getline(ss >> ws, brand, ',');
-        ss >> ws >> year;
-        getline(ss >> ws, type, ',');
+        // Parse each field from the line
+        getline(ss, licensePlate, ',');
+        getline(ss >> ws, manufacturer, ',');
+
+        string yearStr;
+        getline(ss >> ws, yearStr, ',');
+        yearOfManufacture = stoi(yearStr);
+
+        getline(ss >> ws, vehicleType, ',');
         getline(ss >> ws, rentalStatus, ',');
-        ss >> ws >> price;
-        ss >> ws >> rentalTimestamp;
+
+        string priceStr;
+        getline(ss >> ws, priceStr, ',');
+        rentalPrice = stod(priceStr);
+
+        string timestampStr;
+        getline(ss >> ws, timestampStr, ',');
+        rentalTimestamp = stol(timestampStr);
+
         getline(ss >> ws, renterName);
 
-        // Check if all data is valid
-        if (!bS.empty() && !brand.empty() && year > 1900 && !type.empty() && !rentalStatus.empty() && price > 0)
-            ds[bS] = Vehicles(bS, brand, year, type, rentalStatus, price, rentalTimestamp, renterName);
+        // Validate and store
+        if (!licensePlate.empty() && !manufacturer.empty() && yearOfManufacture > 1900 &&
+            !vehicleType.empty() && !rentalStatus.empty() && rentalPrice > 0)
+        {
+            vehiclesMap[licensePlate] = Vehicles(
+                licensePlate, manufacturer, yearOfManufacture,
+                vehicleType, rentalStatus, rentalPrice,
+                rentalTimestamp, renterName
+            );
+        }
         else
-            fmt::print("⚠️ Warning: Skipping invalid line '{}'\n", line);
+        {
+            fmt::print("⚠️ Invalid line:\n"
+                       "  plate='{}'\n  brand='{}'\n  year={}\n  type='{}'\n  status='{}'\n  price={}\n  ts={}\n  renter='{}'\n",
+                       licensePlate, manufacturer, yearOfManufacture, vehicleType, rentalStatus,
+                       rentalPrice, rentalTimestamp, renterName);
+            fmt::print("⚠️ Skipping line: '{}'\n", line);
+        }
     }
 
     file.close();
 
-    // Load data from JSON if needed
-    loadFromJson(ds, jsondata);
+    // Load data from JSON (append or override)
+    loadFromJson(vehiclesMap, jsondata);
 }
+
 
 // ---------------------------------------------------------------------
