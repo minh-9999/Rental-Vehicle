@@ -1,7 +1,7 @@
 #include "../third_party/googletest-src/googletest/include/gtest/gtest.h"
 // #include "gtest/gtest.h"
 #include "../src/Vehicles.h"
-#include "../src/RentalTransaction.h"
+#include "../src/RentalTransaction.cc"
 // #include "../src/dataJson.h"
 
 TEST(IntegrationTest, RentAndSaveToJson)
@@ -20,12 +20,17 @@ TEST(IntegrationTest, RentAndSaveToJson)
     EXPECT_TRUE(ds["42H-12345"].isRented());
     EXPECT_EQ(ds["42H-12345"].renterName, "khach123");
 
-    // ✅ Save to JSON
-    saveList(ds); // or saveToJson(ds, jsondata);
+    // saveList(ds);
+    // ✅ Save to global jsondata string directly (no file I/O)
+    saveToJson(ds, jsondata);
 
-    // ✅ Load from JSON
+    // 👇 Optionally print for debug
+    // fmt::print("jsondata = {}\n", jsondata);
+
+    // ✅ Load from jsondata directly
     unordered_map<string, Vehicles> ds_loaded;
-    loadList(ds_loaded); // or loadFromJson(ds_loaded, jsondata);
+    loadFromJson(ds_loaded, jsondata);
+    // loadList(ds_loaded);
 
     // ✅ Check again after reloading
     ASSERT_TRUE(ds_loaded.contains("42H-12345"));
