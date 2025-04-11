@@ -2,7 +2,7 @@
 // #include "gtest/gtest.h"
 #include "../src/Vehicles.h"
 #include "../src/RentalTransaction.cc"
-// #include "../src/dataJson.h"
+#include "../third_party/fmt-src/include/fmt/core.h"
 
 TEST(IntegrationTest, RentAndSaveToJson)
 {
@@ -25,7 +25,7 @@ TEST(IntegrationTest, RentAndSaveToJson)
     saveToJson(ds, jsondata);
 
     // 👇 Optionally print for debug
-    // fmt::print("jsondata = {}\n", jsondata);
+    fmt::print("jsondata = {}\n", jsondata);
 
     // ✅ Load from jsondata directly
     unordered_map<string, Vehicles> ds_loaded;

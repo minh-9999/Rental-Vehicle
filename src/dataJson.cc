@@ -1,5 +1,6 @@
 #include "dataJson.h"
 #include "safe_localtime.h"
+#include "../third_party/fmt-src/include/fmt/core.h"
 
 // #include "../third_party/json-src/single_include/nlohmann/json.hpp"
 #include "config.h"
@@ -101,7 +102,7 @@ void loadFromJson(unordered_map<string, Vehicles> &ds, const string &filename)
             }
 
             // Handle rentalStatus with default "AVAILABLE"
-            string status = value.value("status", "AVAILABLE");
+            string status = value.value("rentalStatus", "AVAILABLE");
             if (status != "RENTED" && status != "AVAILABLE")
             {
                 fmt::print("\n ⚠️ Error: Vehicle {} has an invalid status! Defaulting to AVAILABLE.\n", key);

@@ -3,6 +3,7 @@
 #include "config.h"
 #include "dataJson.h"
 #include "safe_localtime.h"
+#include "../third_party/fmt-src/include/fmt/core.h"
 
 #ifdef _WIN32
 #include <windows.h>

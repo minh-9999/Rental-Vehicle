@@ -5,6 +5,7 @@
 #include "dataJson.h"
 #include "safe_localtime.h"
 #include "config.h"
+#include "../third_party/fmt-src/include/fmt/core.h"
 
 // #define LOG "rental_log.txt"
 
@@ -290,8 +291,7 @@ void loadList(unordered_map<string, Vehicles> &vehiclesMap)
             vehiclesMap[licensePlate] = Vehicles(
                 licensePlate, manufacturer, yearOfManufacture,
                 vehicleType, rentalStatus, rentalPrice,
-                rentalTimestamp, renterName
-            );
+                rentalTimestamp, renterName);
         }
         else
         {
@@ -308,6 +308,5 @@ void loadList(unordered_map<string, Vehicles> &vehiclesMap)
     // Load data from JSON (append or override)
     loadFromJson(vehiclesMap, jsondata);
 }
-
 
 // ---------------------------------------------------------------------
