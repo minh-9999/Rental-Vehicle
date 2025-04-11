@@ -2,6 +2,10 @@
 
 #include "Vehicles.h"
 
+#ifdef _WIN32
+#include "win_include.h"
+#endif
+
 // Logging and transaction functions
 void writeLog(const RentalTransaction &);
 

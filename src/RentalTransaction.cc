@@ -5,10 +5,6 @@
 #include "safe_localtime.h"
 #include "../third_party/fmt-src/include/fmt/core.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 // string jsondata = "vehicle.json";
 string LOG = "rental_log.txt";
 
