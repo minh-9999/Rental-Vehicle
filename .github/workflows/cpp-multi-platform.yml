@@ -82,6 +82,7 @@ jobs:
           path: Rental-Vehicle-${{ matrix.os }}.tar.gz
 
       - name: Send success email
+        if: success()  # Only run if previous steps succeeded
         uses: dawidd6/action-send-mail@v2
         with:
           server_address: smtp.gmail.com
@@ -90,8 +91,15 @@ jobs:
           password: ${{ secrets.SMTP_PASS }} # Fetching from GitHub Secrets
           to: ngo.chu.le.vuong@gmail.com # Replace with recipient email
           from: ${{ secrets.SMTP_USER }} # Your Gmail email address from GitHub Secrets
-          subject: "CI Build Success"
-          body: "The build has successfully completed."
+          subject: '✅ CI Build Success on ${{ runner.os }}'
+          body: |
+            Good news! The CI build has completed successfully on ${{ runner.os }}.
+
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+
+            Have a great day! 🚀
 
   release:
     needs: build
