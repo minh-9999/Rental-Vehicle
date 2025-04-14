@@ -2,10 +2,10 @@ name: C++ CI/CD with GitHub Releases
 
 on:
   push:
-    branches: [dev, main] # Run CI on push to dev or main
+    branches: [dev, master] # Run CI on push to dev or master
     tags: ["v*.*.*"] # Trigger release workflow on version tag
   pull_request:
-    branches: [main] # Run CI on pull requests to main
+    branches: [master] # Run CI on pull requests to master
 
 jobs:
   build:
@@ -80,6 +80,18 @@ jobs:
         with:
           name: Rental-Vehicle-${{ matrix.os }}
           path: Rental-Vehicle-${{ matrix.os }}.tar.gz
+
+      - name: Send success email
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USER }} # Fetching from GitHub Secrets
+          password: ${{ secrets.SMTP_PASS }} # Fetching from GitHub Secrets
+          to: ngo.chu.le.vuong@gmail.com # Replace with recipient email
+          from: ${{ secrets.SMTP_USER }} # Your Gmail email address from GitHub Secrets
+          subject: "CI Build Success"
+          body: "The build has successfully completed."
 
   release:
     needs: build
