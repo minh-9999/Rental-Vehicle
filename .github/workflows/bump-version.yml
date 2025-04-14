@@ -2,7 +2,7 @@ name: Bump Version and Tag
 
 on:
   push:
-    branches: [main] # Only trigger when changes are pushed to main
+    branches: [master] # Only trigger when changes are pushed to master
 
 jobs:
   bump:
@@ -43,5 +43,10 @@ jobs:
 
       - name: Create and push tag
         run: |
-          git tag ${{ steps.next.outputs.new_tag }}
-          git push origin ${{ steps.next.outputs.new_tag }}
+          git fetch --tags
+          if git rev-parse "$new_version" >/dev/null 2>&1; then
+            echo "Tag $new_version already exists, skipping..."
+          else
+            git tag ${{ steps.next.outputs.new_tag }}
+            git push origin ${{ steps.next.outputs.new_tag }}
+          fi

@@ -1,0 +1,80 @@
+version: 1.0.{build}
+
+# Trigger events for Git actions
+branches:
+  only:
+  - dev
+  - master
+
+# Trigger events for version tags
+tags:
+  only:
+  - v*.*.*
+
+# Environment configuration and build steps
+environment:
+  matrix:
+  - platform: "Linux"
+    image: "ubuntu-latest"
+  - platform: "Windows"
+    image: "Visual Studio 2022"
+  - platform: "macOS"
+    image: "macOS-latest"
+
+jobs:
+- job: build
+  image: $(platform)
+
+  install:
+  # Install dependencies for different platforms
+  - ps: if ($env:platform -eq 'Linux') { sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential }
+  - ps: if ($env:platform -eq 'Windows') { choco install -y cmake ninja llvm }
+  - ps: if ($env:platform -eq 'macOS') { brew install cmake ninja llvm || true }
+
+  # Configure and build the project
+  script:
+  - ps: |
+      mkdir build
+      cd build
+      cmake .. -DCMAKE_BUILD_TYPE=Release
+      cmake --build .
+
+  test:
+  # Run unit tests
+  - ps: |
+      cd build
+      ctest -R "Unit" --output-on-failure || exit 1
+
+  # Run integration tests
+  - ps: |
+      cd build
+      ctest -R "Integration" --output-on-failure || exit 1
+
+  # Create binary package (.tar.gz for Linux, .zip for Windows/macOS)
+  artifacts:
+  - path: build/Rental-Vehicle*
+    name: Rental-Vehicle-${env:platform}
+
+  # Upload binary artifacts after build
+  after_build:
+  - ps: |
+      mkdir -p package
+      cp build/Rental-Vehicle* package/
+      if ($env:platform -eq 'Linux') {
+          tar -czf package/Rental-Vehicle-${env:platform}.tar.gz -C package .
+      } elseif ($env:platform -eq 'Windows') {
+          Compress-Archive -Path package\* -DestinationPath package\Rental-Vehicle-${env:platform}.zip
+      } else {
+          zip -r package/Rental-Vehicle-${env:platform}.zip package/
+      }
+
+  # Upload the artifact files
+  deploy:
+  - provider: GitHubRelease
+    api_key: ${{ secrets.GITHUB_TOKEN }}
+    file: package/Rental-Vehicle-${env:platform}*.{tar.gz,zip}
+    artifact_name: "Rental-Vehicle-${env:platform}"
+    tag: ${{ appveyor.build.version }}
+    release_notes: "CHANGELOG.md"
+    draft: false
+    prerelease: false
