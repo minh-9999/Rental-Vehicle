@@ -51,20 +51,36 @@ jobs:
           cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --config Release
 
+      - name: Prepare log directory
+        run: mkdir -p build/logs
+
       # Run unit tests
-      - name: Run Unit Tests
-        run: cd build && ctest -R "Unit" --output-on-failure || exit 1
+      - name: Run Unit Tests and Save Log
+
+        run: |
+          cd build 
+          set -o pipefail
+          ctest -R "Unit" --output-on-failure | tee logs/unit_test.log
 
       # Run integration tests
       - name: Run Integration Tests
-        run: cd build && ctest -R "Integration" --output-on-failure || exit 1
+        run: |
+          cd build 
+          set -o pipefail
+          ctest -R "Integration" --output-on-failure | tee logs/integration_test.log
+
+      # Combine both logs
+      - name: Combine test logs
+        run: |
+          cat build/logs/unit_test.log build/logs/integration_test.log > build/logs/test.log || true
 
       # Upload test results (optional)
-      - name: Upload Test Report
+      - name: Upload test log artifact (optional)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-report-${{ matrix.os }}
-          path: build/logs/
+          name: test-log-${{ runner.os }}
+          path: build/logs/test.log
 
       # Package the binary into a .tar.gz
       - name: Package Binary (.tar.gz)
@@ -81,8 +97,8 @@ jobs:
           name: Rental-Vehicle-${{ matrix.os }}
           path: Rental-Vehicle-${{ matrix.os }}.tar.gz
 
-      - name: Send success email
-        if: success()  # Only run if previous steps succeeded
+      - name: Send success email with log
+        if: success() # Only run if previous steps succeeded
         uses: dawidd6/action-send-mail@v2
         with:
           server_address: smtp.gmail.com
@@ -91,15 +107,39 @@ jobs:
           password: ${{ secrets.SMTP_PASS }} # Fetching from GitHub Secrets
           to: ngo.chu.le.vuong@gmail.com # Replace with recipient email
           from: ${{ secrets.SMTP_USER }} # Your Gmail email address from GitHub Secrets
-          subject: '✅ CI Build Success on ${{ runner.os }}'
+          attachments: build/logs/test.log
+          subject: "✅ CI Build Success on ${{ runner.os }}"
           body: |
             Good news! The CI build has completed successfully on ${{ runner.os }}.
 
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref }}
-            Commit: ${{ github.sha }}
+            📦 Repository: ${{ github.repository }}
+            🌿 Branch: ${{ github.ref }}
+            🔢 Commit: ${{ github.sha }}
+
+            👉 Check the attached log for details.
 
             Have a great day! 🚀
+
+      - name: Send failure email with log
+        if: failure()
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          subject: "❌ CI Test Failed on ${{ runner.os }}"
+          body: |
+            ❌ Test failed on ${{ runner.os }}.
+
+            📦 Repository: ${{ github.repository }}
+            🌿 Branch: ${{ github.ref }}
+            🔢 Commit: ${{ github.sha }}
+
+            👉 Check the attached log for details.
+          to: ngo.chu.le.vuong@gmail.com
+          from: ${{ secrets.SMTP_USER }}
+          attachments: build/logs/test.log
 
   release:
     needs: build
