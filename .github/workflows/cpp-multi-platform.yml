@@ -61,8 +61,10 @@ jobs:
           fi
         shell: bash
 
-      - name: Run tests
-        run: scripts/run_tests.sh
+      - name: Make test script executable & Run tests
+        run: |
+          chmod +x scripts/run_tests.sh  
+          ./scripts/run_tests.sh
         shell: bash
 
       # Upload test results (optional)
