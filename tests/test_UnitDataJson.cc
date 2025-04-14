@@ -5,6 +5,7 @@
 // #include "../third_party/json-src/single_include/nlohmann/json.hpp"
 #include "../src/safe_localtime.h"
 #include "../src/config.h"
+#include "../third_party/fmt-src/include/fmt/core.h"
 
 using json = nlohmann::json;
 
@@ -66,7 +67,7 @@ TEST(DataJsonTest, SaveToJsonWithAvailable)
     ifstream inFile(TEST_JSON_FILE);
     json result;
     inFile >> result;
-    fmt::print("\n  --- Loaded JSON: {}\n", result.dump(4)); // In ra dữ liệu đã đọc được từ file
+    fmt::print("\n  --- Loaded JSON: {}\n", result.dump(4)); // print data loaded from JSON
     inFile.close();
 
     ASSERT_EQ(result.size(), 1);

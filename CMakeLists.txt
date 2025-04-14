@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(Rental_Vehicle LANGUAGES CXX)
+project(Rental-Vehicle LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -78,7 +78,7 @@ target_compile_definitions(rental_lib PRIVATE FMT_HEADER_ONLY=1)
 # Link external libraries to rental_lib
 target_link_libraries(
     rental_lib
-    PRIVATE fmt::fmt-header-only
+    PUBLIC fmt::fmt-header-only
     PRIVATE spdlog::spdlog_header_only
 )
 

@@ -2,7 +2,7 @@
 
 #include <ctime>
 // #include <fmt/core.h>
-#include "../third_party/fmt-src/include/fmt/core.h"
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -10,12 +10,13 @@
 #include <unordered_map>
 #include <vector>
 #include <locale.h> // Required for setlocale()
-#include <windows.h>
+
 #include <utility>
 #include "rental_export.h"
 
 using namespace std;
 
+extern string jsondata;
 extern string LOG;
 
 struct Vehicles

@@ -1,0 +1,47 @@
+name: Bump Version and Tag
+
+on:
+  push:
+    branches: [main] # Only trigger when changes are pushed to main
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # Needed to push changes and tags
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required to get all tags
+
+      - name: Setup Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Get latest version tag
+        id: get_tag
+        run: |
+          latest_tag=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || echo "v0.0.0")
+          echo "Latest tag: $latest_tag"
+          echo "latest=$latest_tag" >> $GITHUB_OUTPUT
+
+      - name: Calculate next version
+        id: next
+        run: |
+          version="${{ steps.get_tag.outputs.latest }}"
+          version="${version#v}"  # remove the leading 'v'
+          IFS='.' read -r major minor patch <<< "$version"
+
+          patch=$((patch + 1))
+          new_version="v$major.$minor.$patch"
+          echo "New version: $new_version"
+          echo "new_tag=$new_version" >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        run: |
+          git tag ${{ steps.next.outputs.new_tag }}
+          git push origin ${{ steps.next.outputs.new_tag }}

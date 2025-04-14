@@ -1,6 +1,7 @@
 #include "Vehicles.h"
 #include "dataJson.h"
 #include "RentalTransaction.h"
+#include "../third_party/fmt-src/include/fmt/core.h"
 
 int main()
 {

@@ -32,11 +32,36 @@ endif()
 
 # find_package(GTest CONFIG REQUIRED)
 
-# Link fmt if needed
-find_package(fmt REQUIRED)
+# Link fmt if needed, remove this line if you're not using system-installed fmt
+# find_package(fmt REQUIRED)
+
+# Add include_directories manually if needed
+# include_directories(${PROJECT_SOURCE_DIR}/third_party/fmt/include)
+
+# ==================== MACRO ====================
+macro(add_safe_executable target_name)
+  set(sources ${ARGN})
+
+  if(sources STREQUAL "")
+    message(FATAL_ERROR "❌ No source files provided for target '${target_name}'")
+  endif()
+
+  foreach(file_name IN LISTS sources)
+    set(full_path "${CMAKE_CURRENT_SOURCE_DIR}/${file_name}")
+
+    if(NOT EXISTS ${full_path})
+      message(FATAL_ERROR "🚫 File not found: '${file_name}' in ${CMAKE_CURRENT_SOURCE_DIR}")
+    else()
+      message(STATUS "✅ Found source file: ${file_name}")
+    endif()
+  endforeach()
+
+  add_executable(${target_name} ${sources})
+  message(STATUS "🎯 Added target '${target_name}' with ${CMAKE_ARGC} source files")
+endmacro()
 
 # ==================== UNIT TEST ====================
-add_executable(
+add_safe_executable(
   UnitTests
   test_UnitVehicle.cc
   test_UnitDataJson.cc
@@ -61,7 +86,10 @@ target_link_libraries(
 )
 
 # ==================== INTEGRATION TEST ====================
-add_executable(IntegrationTests test_integration.cc)
+add_safe_executable(
+  IntegrationTests
+  test_Integration.cc
+)
 
 # fix warning for GoogleTest
 # target_compile_definitions(
@@ -84,10 +112,10 @@ add_test(
   COMMAND UnitTests --gtest_color=yes
 )
 
-add_test(
-  NAME IntegrationTest
-  COMMAND IntegrationTests --gtest_color=yes
-)
+# add_test(
+# NAME IntegrationTest
+# COMMAND IntegrationTests --gtest_color=yes
+# )
 
 # ==================== proceed the shared library ====================
 # if(WIN32)
@@ -102,10 +130,16 @@ add_test(
 # set_tests_properties(IntegrationTest PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:rental_lib>")
 # endif()
 
-# Cấu hình chạy tests và xuất kết quả ra XML
+# comfigure run tests and export results to XML
+# add_test(
+# NAME IntegrationTests
+# COMMAND integration_tests --gtest_output=xml:${CMAKE_BINARY_DIR}/logs/integration_test_results.xml
+# )
 add_test(
   NAME IntegrationTests
-  COMMAND integration_tests --gtest_output=xml:${CMAKE_BINARY_DIR}/logs/integration_test_results.xml
+  COMMAND IntegrationTests
+  --gtest_color=yes
+  --gtest_output=xml:${CMAKE_BINARY_DIR}/logs/integration_test_results.xml
 )
 
 # ==================== HTML TEST REPORT ====================
