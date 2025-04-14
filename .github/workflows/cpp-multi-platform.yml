@@ -51,28 +51,19 @@ jobs:
           cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --config Release
 
-      - name: Prepare log directory
-        run: mkdir -p build/logs
-
-      # Run unit tests
-      - name: Run Unit Tests and Save Log
-
+      - name: Install GitHub CLI (for artifact upload)
+        if: runner.os == 'Linux' || runner.os == 'macOS'
         run: |
-          cd build 
-          set -o pipefail
-          ctest -R "Unit" --output-on-failure | tee logs/unit_test.log
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get install -y gh
+          else
+            brew install gh
+          fi
+        shell: bash
 
-      # Run integration tests
-      - name: Run Integration Tests
-        run: |
-          cd build 
-          set -o pipefail
-          ctest -R "Integration" --output-on-failure | tee logs/integration_test.log
-
-      # Combine both logs
-      - name: Combine test logs
-        run: |
-          cat build/logs/unit_test.log build/logs/integration_test.log > build/logs/test.log || true
+      - name: Run tests
+        run: scripts/run_tests.sh
+        shell: bash
 
       # Upload test results (optional)
       - name: Upload test log artifact (optional)
