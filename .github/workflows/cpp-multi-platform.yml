@@ -63,6 +63,50 @@ jobs:
       #     files: build/logs/coverage.xml
       #     name: codecov-${{ matrix.os }}
 
+      - name: Send success email with log
+        if: success()
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          to: ngo.chu.le.vuong@gmail.com
+          from: ${{ secrets.SMTP_USER }}
+          attachments: build/logs/test.log
+          subject: "✅ CI Build Success on ${{ runner.os }}"
+          body: |
+            Good news! The CI build has completed successfully on ${{ runner.os }}.
+
+            📦 Repository: ${{ github.repository }}
+            🌿 Branch: ${{ github.ref }}
+            🔢 Commit: ${{ github.sha }}
+
+            👉 Check the attached log for details.
+
+            Have a great day! 🚀
+
+      - name: Send failure email with log
+        if: failure()
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          subject: "❌ CI Test Failed on ${{ runner.os }}"
+          body: |
+            ❌ Test failed on ${{ runner.os }}.
+
+            📦 Repository: ${{ github.repository }}
+            🌿 Branch: ${{ github.ref }}
+            🔢 Commit: ${{ github.sha }}
+
+            👉 Check the attached log for details.
+          to: ngo.chu.le.vuong@gmail.com
+          from: ${{ secrets.SMTP_USER }}
+          attachments: build/logs/test.log
+
   release:
     if: github.ref == 'refs/heads/master' && startsWith(github.ref, 'refs/tags/v')
     strategy:
@@ -125,47 +169,3 @@ jobs:
         run: |
           echo "![Test Status](https://github.com/minh-9999/Rental-Vehicle/actions/workflows/cpp-multi-platform.yml/badge.svg)" >> README.md
         shell: bash
-
-      - name: Send success email with log
-        if: success()
-        uses: dawidd6/action-send-mail@v2
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.SMTP_USER }}
-          password: ${{ secrets.SMTP_PASS }}
-          to: ngo.chu.le.vuong@gmail.com
-          from: ${{ secrets.SMTP_USER }}
-          attachments: build/logs/test.log
-          subject: "✅ CI Build Success on ${{ runner.os }}"
-          body: |
-            Good news! The CI build has completed successfully on ${{ runner.os }}.
-
-            📦 Repository: ${{ github.repository }}
-            🌿 Branch: ${{ github.ref }}
-            🔢 Commit: ${{ github.sha }}
-
-            👉 Check the attached log for details.
-
-            Have a great day! 🚀
-
-      - name: Send failure email with log
-        if: failure()
-        uses: dawidd6/action-send-mail@v2
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.SMTP_USER }}
-          password: ${{ secrets.SMTP_PASS }}
-          subject: "❌ CI Test Failed on ${{ runner.os }}"
-          body: |
-            ❌ Test failed on ${{ runner.os }}.
-
-            📦 Repository: ${{ github.repository }}
-            🌿 Branch: ${{ github.ref }}
-            🔢 Commit: ${{ github.sha }}
-
-            👉 Check the attached log for details.
-          to: ngo.chu.le.vuong@gmail.com
-          from: ${{ secrets.SMTP_USER }}
-          attachments: build/logs/test.log
