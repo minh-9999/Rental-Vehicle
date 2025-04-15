@@ -1,5 +1,6 @@
 
 #include "config.h"
+#include <iostream>
 #include <sstream>
 #include <iomanip>
 #include "safe_localtime.h"
@@ -55,8 +56,11 @@ time_t convertStringToTime(const string &timeStr)
     tm tmt = {};
     int day, month, year, hour, minute, second;
 
-    if (SAFE_SSCANF(timeStr.c_str(), "%d-%d-%d %d:%d:%d", &day, &month, &year, &hour, &minute, &second) != 6)
+    if (safe_sscanf(timeStr.c_str(), "%d-%d-%d %d:%d:%d", &day, &month, &year, &hour, &minute, &second) != 6)
+    {
+        cerr << "❌ Invalid datetime format: " << timeStr << std::endl;
         throw runtime_error("Error: Invalid time format. Expected format: dd-mm-yyyy hh:mm:ss");
+    }
 
     tmt.tm_mday = day;
     tmt.tm_mon = month - 1;    // Adjust for tm structure (months are 0-11)

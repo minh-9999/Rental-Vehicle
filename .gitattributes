@@ -1,4 +1,7 @@
 
-*.sh text eol=lf
 *.cpp text eol=lf
 *.h text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+*.cc text eol=lf
+*.hpp text eol=lf
