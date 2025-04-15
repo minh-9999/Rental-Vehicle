@@ -32,7 +32,8 @@ cat logs/*.log > logs/test.log || true
 
 # 📝 Collect code coverage data
 echo "📊 Collecting coverage data..."
-llvm-cov gcovr --root . --xml --output build/logs/coverage.xml  # make sure to use the correct path for your project
+# llvm-cov gcovr --root . --xml --output build/logs/coverage.xml  # make sure to use the correct path for your project
+gcovr --root . --xml --output build/logs/coverage.xml
 
 # 📦 Check if coverage data was generated
 if [ -f "build/logs/coverage.xml" ]; then
