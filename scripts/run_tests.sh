@@ -30,14 +30,11 @@ ctest -R "Integration" --output-on-failure | tee logs/integration_test.log || ec
 echo "📦 Combining test logs..."
 cat logs/*.log > logs/test.log || true
 
-# 📝 Collect code coverage data
+# 📝 Collect code coverage data using LLVM (not lcov)
 echo "📊 Collecting coverage data..."
-lcov --capture --directory . --output-file build/logs/coverage.info
+llvm-cov gcovr -r . --xml > build/logs/coverage.xml
 
 # 📦 Generate coverage HTML report (Optional)
-genhtml build/logs/coverage.info --output-directory build/logs/coverage_html
-
-# 📝 Create XML format for Codecov
-lcov --capture --directory . --output-file build/logs/coverage.xml
+genhtml build/logs/coverage.xml --output-directory build/logs/coverage_html
 
 echo "✅ All tests executed and logs saved."

@@ -8,7 +8,8 @@ on:
     branches: [master] # Run CI on pull requests to master
 
 jobs:
-  build:
+  build-and-test:
+    if: github.ref != 'refs/heads/master' || !startsWith(github.ref, 'refs/tags/v')
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -18,10 +19,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Install dependencies per platform
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential lcov
+        run: sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential
 
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
@@ -29,9 +29,8 @@ jobs:
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install cmake ninja llvm lcov --formula || true
+        run: brew install cmake ninja llvm || true
 
-      # Add caching for dependencies
       - name: Cache CMake build
         uses: actions/cache@v4
         with:
@@ -40,22 +39,32 @@ jobs:
             ~/.cmake/packages
           key: cmake-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt') }}
 
-      # Configure and build project
-      - name: Configure & Build
+      - name: Configure & Build (Debug)
         run: |
           mkdir build && cd build
-          cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --config Release
+          cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCOVERAGE=ON
+          cmake --build . --config Debug
 
-      # Upload build artifact
-      - name: Upload Binary Artifact
+      - name: Run Tests & Generate Coverage
+        run: |
+          chmod +x scripts/run_tests.sh
+          ./scripts/run_tests.sh
+
+      - name: Upload test log artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Rental-Vehicle-${{ matrix.os }}
-          path: build/Rental-Vehicle*
+          name: test-log-${{ matrix.os }}
+          path: build/logs/test.log
 
-  test:
-    needs: build
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: build/logs/coverage.xml
+          name: codecov-${{ matrix.os }}
+
+  release:
+    if: github.ref == 'refs/heads/master' && startsWith(github.ref, 'refs/tags/v')
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -65,41 +74,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Make test script executable & Run tests
-      - name: Make test script executable & Run tests
+      - name: Install dependencies
         run: |
-          chmod +x scripts/run_tests.sh  
-          ./scripts/run_tests.sh
-        shell: bash
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            brew install cmake ninja llvm || true
+          else
+            choco install -y cmake ninja llvm
+          fi
 
-      # Upload test results (optional)
-      - name: Upload test log artifact
-        if: always()
+      - name: Configure & Build (Release)
+        run: |
+          mkdir build && cd build
+          cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+
+      - name: Package binary
+        run: |
+          cd build
+          tar -czvf Rental-Vehicle-${{ runner.os }}.tar.gz Rental-Vehicle*
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: test-log-${{ matrix.os }}
-          path: build/logs/test.log
+          name: Rental-Vehicle-${{ matrix.os }}
+          path: build/Rental-Vehicle-${{ matrix.os }}.tar.gz
 
-      # Upload coverage to Codecov
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          #   token: ${{ secrets.CODECOV_TOKEN }} # Add this if the repository is private
-          files: build/logs/coverage.xml
-          name: codecov-${{ matrix.os }}
-
-  release:
-    needs: [test]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') # Only run on version tags like v1.0.0
-
-    steps:
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      # Create a GitHub release with artifacts and changelog
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -110,29 +116,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Upload a badge indicating the build status (icon)
       - name: Add Build Status Badge
         run: |
           echo "![Build Status](https://github.com/minh-9999/Rental-Vehicle/actions/workflows/cpp-multi-platform.yml/badge.svg)" >> README.md
         shell: bash
 
-      # Upload a badge indicating the test status (icon)
       - name: Add Test Status Badge
         run: |
           echo "![Test Status](https://github.com/minh-9999/Rental-Vehicle/actions/workflows/cpp-multi-platform.yml/badge.svg)" >> README.md
         shell: bash
 
-      # Send success email with log
       - name: Send success email with log
-        if: success() # Only run if previous steps succeeded
+        if: success()
         uses: dawidd6/action-send-mail@v2
         with:
           server_address: smtp.gmail.com
           server_port: 587
-          username: ${{ secrets.SMTP_USER }} # Fetching from GitHub Secrets
-          password: ${{ secrets.SMTP_PASS }} # Fetching from GitHub Secrets
-          to: ngo.chu.le.vuong@gmail.com # Replace with recipient email
-          from: ${{ secrets.SMTP_USER }} # Your Gmail email address from GitHub Secrets
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          to: ngo.chu.le.vuong@gmail.com
+          from: ${{ secrets.SMTP_USER }}
           attachments: build/logs/test.log
           subject: "✅ CI Build Success on ${{ runner.os }}"
           body: |
@@ -146,7 +149,6 @@ jobs:
 
             Have a great day! 🚀
 
-      # Send failure email with log
       - name: Send failure email with log
         if: failure()
         uses: dawidd6/action-send-mail@v2

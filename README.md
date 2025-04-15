@@ -67,7 +67,7 @@ Logs will be saved in build/logs/test.log.
 
 ## 🗂 Project Structure
 
-.
+.  
 ├── src/                  		# Core source code  
 ├── template-test/        		# YAML files for test config  
 ├── test/                 		# Unit & Integration tests  
