@@ -45,10 +45,16 @@ jobs:
           cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCOVERAGE=ON
           cmake --build . --config Debug
 
-      - name: Run Tests & Generate Coverage
+      - name: Run Tests & Generate Coverage (Unix)
+        if: runner.os != 'Windows'
         run: |
           chmod +x scripts/run_tests.sh
           ./scripts/run_tests.sh
+
+      - name: Run Tests & Generate Coverage (Windows)
+        if: runner.os == 'Windows'
+        run: scripts\\run_tests.cmd
+        shell: cmd
 
       - name: Upload test log artifact
         if: always()
