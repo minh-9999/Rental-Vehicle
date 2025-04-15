@@ -63,6 +63,15 @@ jobs:
       #     files: build/logs/coverage.xml
       #     name: codecov-${{ matrix.os }}
 
+      - name: Check if test log exists
+        run: |
+          if [ ! -f build/logs/test.log ]; then
+            echo "Test log not found!"
+            exit 1
+          else
+            echo "Test log found."
+          fi
+
       - name: Send success email with log
         if: success()
         uses: dawidd6/action-send-mail@v2
