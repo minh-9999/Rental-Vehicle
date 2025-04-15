@@ -59,7 +59,7 @@ cmake --build build
 
 ## ✅ Run Tests
 
-cd script
+cd script  
 ./run_tests.sh
 
 Logs will be saved in build/logs/test.log.
@@ -68,17 +68,17 @@ Logs will be saved in build/logs/test.log.
 ## 🗂 Project Structure
 
 .
-├── src/                  		# Core source code
-├── template-test/        		# YAML files for test config
-├── test/                 		# Unit & Integration tests
-├── script/               		# Test & build scripts
-├── third_party/          		# External libraries (e.g., fmt, gtest)
-├── build/                		# CMake build output
-├── resource/                	# Assets (icons, etc.)
-└── CMakeLists.txt
+├── src/                  		# Core source code  
+├── template-test/        		# YAML files for test config  
+├── test/                 		# Unit & Integration tests  
+├── script/               		# Test & build scripts  
+├── third_party/          		# External libraries (e.g., fmt, gtest)  
+├── build/                		# CMake build output  
+├── resource/                	# Assets (icons, etc.)  
+└── CMakeLists.txt  
 
 
 ## 📫 Contact
 
-📧 ngodinhhai.hcm@gmail.com
+📧 ngodinhhai.hcm@gmail.com  
 🌐 https://github.com/minh-9999
