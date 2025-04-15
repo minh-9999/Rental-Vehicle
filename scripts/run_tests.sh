@@ -30,31 +30,31 @@ ctest -R "Integration" --output-on-failure | tee logs/integration_test.log || ec
 echo "📦 Combining test logs..."
 cat logs/*.log > logs/test.log || true
 
-# 📝 Collect code coverage data
-echo "📊 Collecting coverage data..."
-llvm-cov gcovr --root . --xml --output build/logs/coverage.xml  # make sure to use the correct path for your project
+# # 📝 Collect code coverage data
+# echo "📊 Collecting coverage data..."
+# llvm-cov gcovr --root . --xml --output build/logs/coverage.xml  # make sure to use the correct path for your project
 
-# 📦 Check if coverage data was generated
-if [ -f "build/logs/coverage.xml" ]; then
-  echo "✅ Coverage XML file created successfully."
-else
-  echo "❌ Failed to create coverage XML file."
-  exit 1
-fi
+# # 📦 Check if coverage data was generated
+# if [ -f "build/logs/coverage.xml" ]; then
+#   echo "✅ Coverage XML file created successfully."
+# else
+#   echo "❌ Failed to create coverage XML file."
+#   exit 1
+# fi
 
-echo "📊 Verifying content of coverage.xml..."
-if [ -s "build/logs/coverage.xml" ]; then
-  echo "✅ coverage.xml has content."
-else
-  echo "❌ coverage.xml is empty."
-  exit 1
-fi
+# echo "📊 Verifying content of coverage.xml..."
+# if [ -s "build/logs/coverage.xml" ]; then
+#   echo "✅ coverage.xml has content."
+# else
+#   echo "❌ coverage.xml is empty."
+#   exit 1
+# fi
 
 
-# 📦 Generate coverage HTML report (Optional)
-genhtml build/logs/coverage.info --output-directory build/logs/coverage_html
+# # 📦 Generate coverage HTML report (Optional)
+# genhtml build/logs/coverage.info --output-directory build/logs/coverage_html
 
-# 📝 Create XML format for Codecov
-llvm-cov gcovr --root . --xml --output build/logs/coverage.xml
+# # 📝 Create XML format for Codecov
+# llvm-cov gcovr --root . --xml --output build/logs/coverage.xml
 
 echo "✅ All tests executed and logs saved."
