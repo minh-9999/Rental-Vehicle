@@ -13,10 +13,10 @@
 ![GitHub](https://img.shields.io/github/license/minh-9999/Rental-Vehicle)
 
 <!-- Platform support -->
-![Platform](https://img.shields.io/badge/platform-linux--windows--macos-blue)
+![Platform](https://img.shields.io/badge/Platform-Linux--Windows--MacOS-blue)
 
 <!-- CMake badge -->
-![CMake](https://img.shields.io/badge/build%20system-CMake-informational)
+![CMake](https://img.shields.io/badge/Build%20system-CMake-informational)
 
 <!-- C++ version -->
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue)
@@ -67,18 +67,20 @@ Logs will be saved in build/logs/test.log.
 
 ## 🗂 Project Structure
 
-.  
-├── src/                  		# Core source code  
-├── template-test/        		# YAML files for test config  
-├── test/                 		# Unit & Integration tests  
-├── script/               		# Test & build scripts  
-├── third_party/          		# External libraries (e.g., fmt, gtest)  
-├── build/                		# CMake build output  
-├── resource/                	# Assets (icons, etc.)  
-└── CMakeLists.txt  
+| Folder            | Description                                      |
+|-------------------|--------------------------------------------------|
+| `src/`            | Core source code                                 |
+| `template-test/`  | YAML files for test config                       |
+| `test/`           | Unit & Integration tests                         |
+| `script/`         | Test & build scripts                             |
+| `third_party/`    | External libraries (e.g., fmt, gtest)            |
+| `build/`          | CMake build output                               |
+| `resource/`       | Assets (icons, etc.)                             |
+| `CMakeLists.txt`  | CMake build configuration file                   |
+
 
 
 ## 📫 Contact
 
 📧 ngodinhhai.hcm@gmail.com  
-🌐 https://github.com/minh-9999
+
