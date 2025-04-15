@@ -14,8 +14,8 @@ echo "📁 Preparing logs directory..."
 mkdir -p build/logs # Ensure logs directory exists
 
 # 📦 Ensure coverage flags are enabled for compilation (if using GCC/Clang)
-export CXXFLAGS="--coverage"
-export LDFLAGS="--coverage"
+# export CXXFLAGS="--coverage"
+# export LDFLAGS="--coverage"
 
 echo "📦 Moving to build directory..."
 cd build
