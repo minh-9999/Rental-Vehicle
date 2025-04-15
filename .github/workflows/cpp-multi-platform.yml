@@ -63,11 +63,11 @@ jobs:
           name: test-log-${{ matrix.os }}
           path: build/logs/test.log
 
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v4
-      #   with:
-      #     files: build/logs/coverage.xml
-      #     name: codecov-${{ matrix.os }}
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: build/logs/coverage.xml
+          name: codecov-${{ matrix.os }}
 
       - name: Check test log exists (Unix)
         if: runner.os != 'Windows'
