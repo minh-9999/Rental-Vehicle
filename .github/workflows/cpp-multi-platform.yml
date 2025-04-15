@@ -22,18 +22,18 @@ jobs:
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run:
-          sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential python3-pip
+          sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential python3-pip &&
           pip3 install gcovr
 
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
-        run: choco install -y cmake ninja llvm
-          python -m pip install --upgrade pip
+        run: choco install -y cmake ninja llvm &&
+          python -m pip install --upgrade pip &&
           pip install gcovr
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install cmake ninja llvm || true
+        run: brew install cmake ninja llvm || true &&
           python3 -m pip install gcovr
 
       - name: Cache CMake build
