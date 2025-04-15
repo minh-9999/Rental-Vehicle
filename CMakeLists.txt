@@ -35,6 +35,12 @@ FetchContent_Declare(
 
 FetchContent_makeavailable(json fmt spdlog)
 
+# disable warnings for microsoft compiler
+if (MSVC)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+endif()
+
+
 # --------------------------- Add main library ---------------------------
 add_library(
     rental_lib

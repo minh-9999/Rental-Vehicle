@@ -2,13 +2,14 @@ name: C++ CI/CD with GitHub Releases
 
 on:
   push:
-    branches: [dev, main] # Run CI on push to dev or main
+    branches: [dev, master] # Run CI on push to dev or master
     tags: ["v*.*.*"] # Trigger release workflow on version tag
   pull_request:
-    branches: [main] # Run CI on pull requests to main
+    branches: [master] # Run CI on pull requests to master
 
 jobs:
-  build:
+  build-and-test:
+    if: github.ref != 'refs/heads/master' || !startsWith(github.ref, 'refs/tags/v')
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -18,7 +19,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Install dependencies per platform
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential
@@ -29,13 +29,8 @@ jobs:
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install cmake ninja llvm
+        run: brew install cmake ninja llvm || true
 
-      # Lint using clang-format
-      # - name: Style check (clang-format)
-      #   run: clang-format --dry-run --Werror $(find . -name '*.cpp' -o -name '*.h')
-
-      # Add caching for dependencies
       - name: Cache CMake build
         uses: actions/cache@v4
         with:
@@ -44,58 +39,117 @@ jobs:
             ~/.cmake/packages
           key: cmake-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt') }}
 
-      # Configure and build project
-      - name: Configure & Build
+      - name: Configure & Build (Debug)
+        run: |
+          mkdir build && cd build
+          cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCOVERAGE=ON
+          cmake --build . --config Debug
+
+      - name: Run Tests & Generate Coverage
+        run: |
+          chmod +x scripts/run_tests.sh
+          ./scripts/run_tests.sh
+
+      - name: Upload test log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-log-${{ matrix.os }}
+          path: build/logs/test.log
+
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     files: build/logs/coverage.xml
+      #     name: codecov-${{ matrix.os }}
+
+      - name: Send success email with log
+        if: success()
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          to: ngo.chu.le.vuong@gmail.com
+          from: ${{ secrets.SMTP_USER }}
+          attachments: build/logs/test.log
+          subject: "✅ CI Build Success on ${{ runner.os }}"
+          body: |
+            Good news! The CI build has completed successfully on ${{ runner.os }}.
+
+            📦 Repository: ${{ github.repository }}
+            🌿 Branch: ${{ github.ref }}
+            🔢 Commit: ${{ github.sha }}
+
+            👉 Check the attached log for details.
+
+            Have a great day! 🚀
+
+      - name: Send failure email with log
+        if: failure()
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          subject: "❌ CI Test Failed on ${{ runner.os }}"
+          body: |
+            ❌ Test failed on ${{ runner.os }}.
+
+            📦 Repository: ${{ github.repository }}
+            🌿 Branch: ${{ github.ref }}
+            🔢 Commit: ${{ github.sha }}
+
+            👉 Check the attached log for details.
+          to: ngo.chu.le.vuong@gmail.com
+          from: ${{ secrets.SMTP_USER }}
+          attachments: build/logs/test.log
+
+  release:
+    if: github.ref == 'refs/heads/master' && startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            brew install cmake ninja llvm || true
+          else
+            choco install -y cmake ninja llvm
+          fi
+
+      - name: Configure & Build (Release)
         run: |
           mkdir build && cd build
           cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --config Release
 
-      # Run unit tests
-      - name: Run Unit Tests
-        run: cd build && ctest -R "Unit" --output-on-failure || exit 1
-
-      # Run integration tests
-      - name: Run Integration Tests
-        run: cd build && ctest -R "Integration" --output-on-failure || exit 1
-
-      # Upload test results (optional)
-      - name: Upload Test Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-report-${{ matrix.os }}
-          path: build/logs/
-
-      # Package the binary into a .tar.gz
-      - name: Package Binary (.tar.gz)
+      - name: Package binary
         run: |
-          mkdir -p package
-          cp build/Rental-Vehicle* package/
-          tar -czf Rental-Vehicle-${{ matrix.os }}.tar.gz -C package .
-        shell: bash
+          cd build
+          tar -czvf Rental-Vehicle-${{ runner.os }}.tar.gz Rental-Vehicle*
 
-      # Upload packaged binary as artifact
-      - name: Upload Binary Artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: Rental-Vehicle-${{ matrix.os }}
-          path: Rental-Vehicle-${{ matrix.os }}.tar.gz
+          path: build/Rental-Vehicle-${{ matrix.os }}.tar.gz
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') # Only run on version tags like v1.0.0
-
-    steps:
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      - name: Show downloaded files
-        run: ls -R artifacts
-
-      # Create a GitHub release with artifacts and changelog
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -105,3 +159,13 @@ jobs:
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add Build Status Badge
+        run: |
+          echo "![Build Status](https://github.com/minh-9999/Rental-Vehicle/actions/workflows/cpp-multi-platform.yml/badge.svg)" >> README.md
+        shell: bash
+
+      - name: Add Test Status Badge
+        run: |
+          echo "![Test Status](https://github.com/minh-9999/Rental-Vehicle/actions/workflows/cpp-multi-platform.yml/badge.svg)" >> README.md
+        shell: bash

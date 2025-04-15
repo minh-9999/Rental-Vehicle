@@ -1,6 +1,8 @@
 #include <functional>
 #include <string>
 #include <regex>
+#include <cstdarg>
+#include <cstdio>
 
 using namespace std;
 
@@ -18,6 +20,28 @@ using namespace std;
     sscanf(str, format, __VA_ARGS__)
 
 #endif
+
+inline int safe_sscanf(const char *str, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+
+    int result;
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4996) // disable warning "unsafe function"
+#endif
+
+    result = vsscanf(str, format, args);
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+    va_end(args);
+    return result;
+}
 
 inline bool checkPattern_1(const string &str, const string &pattern)
 {
