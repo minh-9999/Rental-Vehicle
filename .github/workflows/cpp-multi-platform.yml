@@ -63,7 +63,9 @@ jobs:
       #     files: build/logs/coverage.xml
       #     name: codecov-${{ matrix.os }}
 
-      - name: Check if test log exists
+      - name: Check test log exists (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
           if [ ! -f build/logs/test.log ]; then
             echo "Test log not found!"
@@ -71,6 +73,17 @@ jobs:
           else
             echo "Test log found."
           fi
+
+      - name: Check test log exists (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (!(Test-Path "build/logs/test.log")) {
+            Write-Host "Test log not found!"
+            exit 1
+          } else {
+            Write-Host "Test log found."
+          }
 
       - name: Send success email with log
         if: success()
