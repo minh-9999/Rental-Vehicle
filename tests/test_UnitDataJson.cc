@@ -7,10 +7,19 @@
 #include "../src/config.h"
 #include "../third_party/fmt-src/include/fmt/core.h"
 
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
 using json = nlohmann::json;
 
 // Mock JSON file for testing
-const string TEST_JSON_FILE = "test_vehicles.json";
+// const string TEST_JSON_FILE = "test_vehicles.json";
+const fs::path jsonFilePath = "test_vehicles.json";
+
+// fs::path testPath = __FILE__;
+// fs::path testDir = testPath.parent_path();
+// fs::path jsonFilePath = testDir / TEST_JSON_FILE;
 
 // Test loading data from JSON
 TEST(DataJsonTest, LoadFromJsonWithAvailable)
@@ -28,11 +37,18 @@ TEST(DataJsonTest, LoadFromJsonWithAvailable)
           {"rentalTime", "01-01-2024 12:00:00"},
           {"rentalStatus", "AVAILABLE"}}}};
 
-    ofstream outFile(TEST_JSON_FILE);
+    // ofstream outFile(TEST_JSON_FILE);
+    ofstream outFile(jsonFilePath);
+
+    if (!outFile)
+        // throw runtime_error("❌ Cannot write to test file: " + TEST_JSON_FILE);
+        throw runtime_error("❌ Cannot write to test file: " + jsonFilePath.string());
+
     outFile << mockData.dump(4);
     outFile.close();
 
-    loadFromJson(ds, TEST_JSON_FILE);
+    // loadFromJson(ds, TEST_JSON_FILE);
+    loadFromJson(ds, jsonFilePath.string());
 
     ASSERT_EQ(ds.size(), 1);
     EXPECT_EQ(ds["42h-94787"].licensePlate, "42h-94787");
@@ -62,9 +78,15 @@ TEST(DataJsonTest, SaveToJsonWithAvailable)
 
     ds["42h-94787"] = Vehicles("42h-94787", "toyota", 2023, "suv", "AVAILABLE", 475894.345, rentalTimestamp, "");
 
-    saveToJson(ds, TEST_JSON_FILE);
+    // saveToJson(ds, TEST_JSON_FILE);
+    saveToJson(ds, jsonFilePath.string());
 
-    ifstream inFile(TEST_JSON_FILE);
+    // ifstream inFile(TEST_JSON_FILE);
+    ifstream inFile(jsonFilePath);
+    if (!inFile)
+        // throw runtime_error("❌ Cannot open test file: " + TEST_JSON_FILE);
+        throw runtime_error("❌ Cannot open test file: " + jsonFilePath.string());
+
     json result;
     inFile >> result;
     fmt::print("\n  --- Loaded JSON: {}\n", result.dump(4)); // print data loaded from JSON
@@ -97,11 +119,17 @@ TEST(DataJsonTest, LoadFromJson_MissingFields)
     json mockData = {
         {"90f-31502", {{"licensePlate", "90f-31502"}, {"rentalPrice", 629412.865}, {"manufacturer", "innova"}, {"vehicleType", "suv"}}}}; // Missing yearOfManufacture, renterName, rentalTimestamp , rentalStatus
 
-    ofstream outFile(TEST_JSON_FILE);
+    // ofstream outFile(TEST_JSON_FILE);
+    ofstream outFile(jsonFilePath);
+    if (!outFile)
+        // throw runtime_error("❌ Cannot write to test file: " + TEST_JSON_FILE);
+        throw runtime_error("❌ Cannot write to test file: " + jsonFilePath.string());
+
     outFile << mockData.dump(4);
     outFile.close();
 
-    loadFromJson(ds, TEST_JSON_FILE);
+    // loadFromJson(ds, TEST_JSON_FILE);
+    loadFromJson(ds, jsonFilePath.string());
 
     ASSERT_EQ(ds.size(), 1);
     EXPECT_EQ(ds["90f-31502"].licensePlate, "90f-31502");
@@ -122,9 +150,12 @@ class CleanupTest : public ::testing::Test
 protected:
     void TearDown() override
     {
-        if (filesystem::exists(TEST_JSON_FILE))
-        {
-            filesystem::remove(TEST_JSON_FILE);
-        }
+        /*
+            if (filesystem::exists(TEST_JSON_FILE))
+                filesystem::remove(TEST_JSON_FILE);
+        */
+
+        if (fs::exists(jsonFilePath))
+            fs::remove(jsonFilePath);
     }
 };

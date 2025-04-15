@@ -21,7 +21,7 @@ jobs:
       # Install dependencies per platform
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential
+        run: sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential lcov
 
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
@@ -29,11 +29,7 @@ jobs:
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install cmake ninja llvm --formula || true
-
-      # Lint using clang-format
-      # - name: Style check (clang-format)
-      #   run: clang-format --dry-run --Werror $(find . -name '*.cpp' -o -name '*.h')
+        run: brew install cmake ninja llvm lcov --formula || true
 
       # Add caching for dependencies
       - name: Cache CMake build
@@ -51,16 +47,25 @@ jobs:
           cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --config Release
 
-      - name: Install GitHub CLI (for artifact upload)
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-        run: |
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            sudo apt install -y gh
-          else
-            brew install gh
-          fi
-        shell: bash
+      # Upload build artifact
+      - name: Upload Binary Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rental-Vehicle-${{ matrix.os }}
+          path: build/Rental-Vehicle*
 
+  test:
+    needs: build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Make test script executable & Run tests
       - name: Make test script executable & Run tests
         run: |
           chmod +x scripts/run_tests.sh  
@@ -68,28 +73,56 @@ jobs:
         shell: bash
 
       # Upload test results (optional)
-      - name: Upload test log artifact (optional)
+      - name: Upload test log artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-log-${{ runner.os }}
+          name: test-log-${{ matrix.os }}
           path: build/logs/test.log
 
-      # Package the binary into a .tar.gz
-      - name: Package Binary (.tar.gz)
+      # Upload coverage to Codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          #   token: ${{ secrets.CODECOV_TOKEN }} # Add this if the repository is private
+          files: build/logs/coverage.xml
+          name: codecov-${{ matrix.os }}
+
+  release:
+    needs: [test]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') # Only run on version tags like v1.0.0
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      # Create a GitHub release with artifacts and changelog
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: artifacts/Rental-Vehicle-*/Rental-Vehicle-*.tar.gz
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Upload a badge indicating the build status (icon)
+      - name: Add Build Status Badge
         run: |
-          mkdir -p package
-          cp build/Rental-Vehicle* package/
-          tar -czf Rental-Vehicle-${{ matrix.os }}.tar.gz -C package .
+          echo "![Build Status](https://github.com/minh-9999/Rental-Vehicle/actions/workflows/cpp-multi-platform.yml/badge.svg)" >> README.md
         shell: bash
 
-      # Upload packaged binary as artifact
-      - name: Upload Binary Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Rental-Vehicle-${{ matrix.os }}
-          path: Rental-Vehicle-${{ matrix.os }}.tar.gz
+      # Upload a badge indicating the test status (icon)
+      - name: Add Test Status Badge
+        run: |
+          echo "![Test Status](https://github.com/minh-9999/Rental-Vehicle/actions/workflows/cpp-multi-platform.yml/badge.svg)" >> README.md
+        shell: bash
 
+      # Send success email with log
       - name: Send success email with log
         if: success() # Only run if previous steps succeeded
         uses: dawidd6/action-send-mail@v2
@@ -113,6 +146,7 @@ jobs:
 
             Have a great day! 🚀
 
+      # Send failure email with log
       - name: Send failure email with log
         if: failure()
         uses: dawidd6/action-send-mail@v2
@@ -133,28 +167,3 @@ jobs:
           to: ngo.chu.le.vuong@gmail.com
           from: ${{ secrets.SMTP_USER }}
           attachments: build/logs/test.log
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') # Only run on version tags like v1.0.0
-
-    steps:
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Show downloaded files
-        run: ls -R artifacts
-
-      # Create a GitHub release with artifacts and changelog
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          files: artifacts/Rental-Vehicle-*/Rental-Vehicle-*.tar.gz
-          body_path: CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

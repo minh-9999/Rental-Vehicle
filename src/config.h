@@ -1,6 +1,8 @@
 #include <functional>
 #include <string>
 #include <regex>
+#include <cstdarg>
+#include <cstdio>
 
 using namespace std;
 
@@ -18,9 +20,6 @@ using namespace std;
     sscanf(str, format, __VA_ARGS__)
 
 #endif
-
-#include <cstdarg>
-#include <cstdio>
 
 inline int safe_sscanf(const char *str, const char *format, ...)
 {
