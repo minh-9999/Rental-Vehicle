@@ -1,21 +1,32 @@
 name: Bump Version and Tag
 
 on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: "Version bump level"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
   push:
-    branches: [master] # Only trigger when changes are pushed to master
+    branches: [master]
 
 jobs:
   bump:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write # Needed to push changes and tags
+      contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required to get all tags
+          fetch-depth: 0
 
       - name: Setup Git
         run: |
@@ -33,20 +44,33 @@ jobs:
         id: next
         run: |
           version="${{ steps.get_tag.outputs.latest }}"
-          version="${version#v}"  # remove the leading 'v'
+          version="${version#v}"
           IFS='.' read -r major minor patch <<< "$version"
 
-          patch=$((patch + 1))
+          bump="${{ github.event.inputs.level || 'patch' }}"
+
+          if [[ "$bump" == "major" ]]; then
+            major=$((major + 1))
+            minor=0
+            patch=0
+          elif [[ "$bump" == "minor" ]]; then
+            minor=$((minor + 1))
+            patch=0
+          else
+            patch=$((patch + 1))
+          fi
+
           new_version="v$major.$minor.$patch"
           echo "New version: $new_version"
           echo "new_tag=$new_version" >> $GITHUB_OUTPUT
 
       - name: Create and push tag
         run: |
+          new_version="${{ steps.next.outputs.new_tag }}"
           git fetch --tags
           if git rev-parse "$new_version" >/dev/null 2>&1; then
             echo "Tag $new_version already exists, skipping..."
           else
-            git tag ${{ steps.next.outputs.new_tag }}
-            git push origin ${{ steps.next.outputs.new_tag }}
+            git tag -a "$new_version" -m "Release $new_version"
+            git push origin "$new_version"
           fi
