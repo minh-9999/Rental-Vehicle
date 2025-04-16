@@ -4,7 +4,7 @@ setlocal EnableDelayedExpansion
 REM === 💡 Set working directory to repo root ===
 cd /d %~dp0\..
 echo 📁 Preparing logs directory...
-mkdir build\logs 2>nul
+@REM mkdir build\logs 2>nul
 
 REM === 📦 Ensure coverage flags are enabled for compilation ===
 set CXXFLAGS=--coverage
@@ -12,6 +12,7 @@ set LDFLAGS=--coverage
 
 REM === 📦 Move to build directory ===
 cd build
+mkdir logs 2>nul
 
 REM === 🧪 Running Unit Tests ===
 echo Running Unit Tests...
@@ -39,10 +40,10 @@ type logs\integration_test.log >> logs\test.log
 REM === 📝 Collect code coverage data ===
 echo 📊 Collecting coverage data...
 :: Using gcovr to generate coverage report in XML format
-gcovr --root . --xml --output build\logs\coverage.xml
+gcovr --root . --xml --output logs\coverage.xml
 
 REM === 📦 Check if coverage data was generated ===
-if exist build\logs\coverage.xml (
+if exist logs\coverage.xml (
     echo ✅ Coverage XML file created successfully.
 ) else (
     echo ❌ Failed to create coverage XML file.
@@ -50,7 +51,7 @@ if exist build\logs\coverage.xml (
 )
 
 REM === 📊 Verifying content of coverage.xml ===
-for /f "delims=" %%i in (build\logs\coverage.xml) do set "content=%%i"
+for /f "delims=" %%i in (logs\coverage.xml) do set "content=%%i"
 if defined content (
     echo ✅ coverage.xml has content.
 ) else (
