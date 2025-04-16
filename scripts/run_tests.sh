@@ -64,6 +64,12 @@ fi
 
 
 # 📦 Generate coverage HTML report (Optional)
-genhtml build/logs/coverage.info --output-directory build/logs/coverage_html
+if command -v genhtml &> /dev/null; then
+  echo "🖼️ Generating HTML coverage report..."
+  genhtml build/logs/coverage.info --output-directory build/logs/coverage_html
+else
+  echo "⚠️ genhtml not found. Skipping HTML report generation."
+fi
+
 
 echo "✅ All tests executed and logs saved."
