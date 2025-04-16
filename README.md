@@ -38,7 +38,7 @@ A cross-platform C++ project for managing vehicle rentals, designed with clean a
 
 ## ✨ Features
 
-- Manage vehicle data: license plate, manufacturer, year, type, rental price
+- Manage vehicle data: license plate, manufacturer, year, type, rental price, rental status
 - Rent/return vehicle and save records in JSON format
 - Real-time rental status tracking
 - Unit & Integration testing with GoogleTest

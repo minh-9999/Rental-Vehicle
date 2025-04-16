@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.2.2
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
@@ -31,13 +31,13 @@ jobs:
           python -m pip install --upgrade pip &&
           pip install gcovr
 
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS'
+      - name: Install dependencies (MacOS)
+        if: runner.os == 'MacOS'
         run: brew install cmake ninja llvm lcov || true &&
           python3 -m pip install --break-system-packages gcovr
 
       - name: Cache CMake build
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: |
             build/_deps
@@ -63,20 +63,20 @@ jobs:
 
       - name: Upload test log artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: test-log-${{ matrix.os }}
           path: build/logs/test.log
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5.4.2
         with:
           files: build/logs/coverage.xml
           name: codecov-${{ matrix.os }}
           # token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage.xml as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: coverage-${{ matrix.os }}
           path: build/logs/coverage.xml
@@ -99,13 +99,14 @@ jobs:
           if (!(Test-Path "build/logs/test.log")) {
             Write-Host "Test log not found!"
             exit 1
-          } else {
+          } 
+          else {
             Write-Host "Test log found."
           }
 
       - name: Send success email with log
         if: success()
-        uses: dawidd6/action-send-mail@v2
+        uses: dawidd6/action-send-mail@v4
         with:
           server_address: smtp.gmail.com
           server_port: 587
@@ -128,7 +129,7 @@ jobs:
 
       - name: Send failure email with log
         if: failure()
-        uses: dawidd6/action-send-mail@v2
+        uses: dawidd6/action-send-mail@v4
         with:
           server_address: smtp.gmail.com
           server_port: 587
@@ -151,12 +152,12 @@ jobs:
     if: github.ref == 'refs/heads/master' && startsWith(github.ref, 'refs/tags/v')
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [Ubuntu-latest, Windows-latest, MacOS-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.2.2
 
       - name: Install dependencies
         run: |
@@ -180,18 +181,18 @@ jobs:
           tar -czvf Rental-Vehicle-${{ runner.os }}.tar.gz Rental-Vehicle*
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: Rental-Vehicle-${{ matrix.os }}
           path: build/Rental-Vehicle-${{ matrix.os }}.tar.gz
 
       - name: Download all build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.2.1
         with:
           path: artifacts
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2.2.1
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
