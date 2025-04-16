@@ -71,5 +71,4 @@ else
   echo "❌ gcovr not found. Skipping HTML coverage generation."
 fi
 
-
 echo "✅ All tests executed and logs saved."
