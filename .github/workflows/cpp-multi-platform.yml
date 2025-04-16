@@ -21,15 +21,20 @@ jobs:
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential
+        run:
+          sudo apt update && sudo apt install -y cmake ninja-build llvm build-essential python3-pip lcov &&
+          pip3 install gcovr
 
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
-        run: choco install -y cmake ninja llvm
+        run: choco install -y cmake ninja llvm &&
+          python -m pip install --upgrade pip &&
+          pip install gcovr
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install cmake ninja llvm || true
+        run: brew install cmake ninja llvm lcov || true &&
+          python3 -m pip install --break-system-packages gcovr
 
       - name: Cache CMake build
         uses: actions/cache@v4
@@ -45,10 +50,16 @@ jobs:
           cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCOVERAGE=ON
           cmake --build . --config Debug
 
-      - name: Run Tests & Generate Coverage
+      - name: Run Tests & Generate Coverage (Unix)
+        if: runner.os != 'Windows'
         run: |
           chmod +x scripts/run_tests.sh
           ./scripts/run_tests.sh
+
+      - name: Run Tests & Generate Coverage (Windows)
+        if: runner.os == 'Windows'
+        run: scripts\\run_tests.cmd
+        shell: cmd
 
       - name: Upload test log artifact
         if: always()
@@ -57,11 +68,40 @@ jobs:
           name: test-log-${{ matrix.os }}
           path: build/logs/test.log
 
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v4
-      #   with:
-      #     files: build/logs/coverage.xml
-      #     name: codecov-${{ matrix.os }}
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: build/logs/coverage.xml
+          name: codecov-${{ matrix.os }}
+          # token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage.xml as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: build/logs/coverage.xml
+
+      - name: Check test log exists (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          if [ ! -f build/logs/test.log ]; then
+            echo "Test log not found!"
+            exit 1
+          else
+            echo "Test log found."
+          fi
+
+      - name: Check test log exists (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (!(Test-Path "build/logs/test.log")) {
+            Write-Host "Test log not found!"
+            exit 1
+          } else {
+            Write-Host "Test log found."
+          }
 
       - name: Send success email with log
         if: success()

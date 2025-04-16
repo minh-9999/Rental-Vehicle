@@ -11,11 +11,13 @@ REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$REPO_ROOT"
 
 echo "📁 Preparing logs directory..."
-mkdir -p build/logs # Ensure logs directory exists
+# mkdir -p build/logs || { echo "❌ Failed to create logs directory"; exit 1; } # Ensure logs directory exists
+mkdir -p "$REPO_ROOT/build/logs" || { echo "❌ Failed to create logs directory"; exit 1; } # Ensure logs directory exists
 
-# 📦 Ensure coverage flags are enabled for compilation (if using GCC/Clang)
-# export CXXFLAGS="--coverage"
-# export LDFLAGS="--coverage"
+
+# 📦 Enable coverage flags (optional if already in CMakeLists)
+export CXXFLAGS="--coverage"
+export LDFLAGS="--coverage"
 
 echo "📦 Moving to build directory..."
 cd build
@@ -30,31 +32,44 @@ ctest -R "Integration" --output-on-failure | tee logs/integration_test.log || ec
 echo "📦 Combining test logs..."
 cat logs/*.log > logs/test.log || true
 
-# # 📝 Collect code coverage data
-# echo "📊 Collecting coverage data..."
+
+echo "⚙️ Checking for .gcno/.gcda files..."
+find . -name "*.gcno" -or -name "*.gcda" || echo "❌ No coverage data files found!"
+
+
+# 📝 Collect code coverage data
+echo "📊 Collecting coverage data..."
 # llvm-cov gcovr --root . --xml --output build/logs/coverage.xml  # make sure to use the correct path for your project
+# gcovr --root . --xml --output build/logs/coverage.xml
+gcovr --root "$REPO_ROOT" --xml --output "$REPO_ROOT/build/logs/coverage.xml"
 
-# # 📦 Check if coverage data was generated
-# if [ -f "build/logs/coverage.xml" ]; then
-#   echo "✅ Coverage XML file created successfully."
-# else
-#   echo "❌ Failed to create coverage XML file."
-#   exit 1
-# fi
+# ⬅️ return repo root to execute gcovr follow context
+cd "$REPO_ROOT"
 
-# echo "📊 Verifying content of coverage.xml..."
-# if [ -s "build/logs/coverage.xml" ]; then
-#   echo "✅ coverage.xml has content."
-# else
-#   echo "❌ coverage.xml is empty."
-#   exit 1
-# fi
+# 📦 Check if coverage data was generated
+if [ -f "build/logs/coverage.xml" ]; then
+  echo "✅ Coverage XML file created successfully."
+else
+  echo "❌ Failed to create coverage XML file."
+  exit 1
+fi
+
+echo "📊 Verifying content of coverage.xml..."
+if [ -s "build/logs/coverage.xml" ]; then
+  echo "✅ coverage.xml has content."
+else
+  echo "❌ coverage.xml is empty."
+  exit 1
+fi
 
 
-# # 📦 Generate coverage HTML report (Optional)
-# genhtml build/logs/coverage.info --output-directory build/logs/coverage_html
+# 📦 Generate coverage HTML report using gcovr (cross-platform)
+if command -v gcovr &> /dev/null; then
+  echo "🖼️ Generating HTML coverage report with gcovr..."
+  gcovr -r . --html --html-details -o build/logs/coverage.html
+else
+  echo "❌ gcovr not found. Skipping HTML coverage generation."
+fi
 
-# # 📝 Create XML format for Codecov
-# llvm-cov gcovr --root . --xml --output build/logs/coverage.xml
 
 echo "✅ All tests executed and logs saved."

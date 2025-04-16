@@ -60,6 +60,14 @@ macro(add_safe_executable target_name)
   message(STATUS "🎯 Added target '${target_name}' with ${CMAKE_ARGC} source files")
 endmacro()
 
+# enable coverage for the target
+function(enable_coverage target)
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_options(${target} PRIVATE --coverage)
+    target_link_options(${target} PRIVATE --coverage)
+  endif()
+endfunction()
+
 # ==================== UNIT TEST ====================
 add_safe_executable(
   UnitTests
@@ -85,6 +93,10 @@ target_link_libraries(
   fmt::fmt-header-only
 )
 
+# Enable coverage for UnitTests
+enable_coverage(UnitTests)
+
+
 # ==================== INTEGRATION TEST ====================
 add_safe_executable(
   IntegrationTests
@@ -105,6 +117,10 @@ target_link_libraries(
   GTest::gtest_main
   fmt::fmt-header-only
 )
+
+# Enable coverage for IntegrationTests
+enable_coverage(IntegrationTests)
+
 
 # ==================== CTEST CONFIG ====================
 add_test(
