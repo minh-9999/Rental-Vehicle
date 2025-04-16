@@ -63,12 +63,12 @@ else
 fi
 
 
-# 📦 Generate coverage HTML report (Optional)
-if command -v genhtml &> /dev/null; then
-  echo "🖼️ Generating HTML coverage report..."
-  genhtml build/logs/coverage.info --output-directory build/logs/coverage_html
+# 📦 Generate coverage HTML report using gcovr (cross-platform)
+if command -v gcovr &> /dev/null; then
+  echo "🖼️ Generating HTML coverage report with gcovr..."
+  gcovr -r . --html --html-details -o build/logs/coverage.html
 else
-  echo "⚠️ genhtml not found. Skipping HTML report generation."
+  echo "❌ gcovr not found. Skipping HTML coverage generation."
 fi
 
 
