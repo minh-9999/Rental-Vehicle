@@ -11,7 +11,7 @@ REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$REPO_ROOT"
 
 echo "📁 Preparing logs directory..."
-mkdir -p build/logs # Ensure logs directory exists
+mkdir -p build/logs || { echo "❌ Failed to create logs directory"; exit 1; } # Ensure logs directory exists
 
 # 📦 Ensure coverage flags are enabled for compilation (if using GCC/Clang)
 export CXXFLAGS="--coverage"
@@ -30,10 +30,12 @@ ctest -R "Integration" --output-on-failure | tee logs/integration_test.log || ec
 echo "📦 Combining test logs..."
 cat logs/*.log > logs/test.log || true
 
+
 # 📝 Collect code coverage data
 echo "📊 Collecting coverage data..."
 # llvm-cov gcovr --root . --xml --output build/logs/coverage.xml  # make sure to use the correct path for your project
 gcovr --root . --xml --output build/logs/coverage.xml
+
 
 # 📦 Check if coverage data was generated
 if [ -f "build/logs/coverage.xml" ]; then
@@ -54,8 +56,5 @@ fi
 
 # 📦 Generate coverage HTML report (Optional)
 genhtml build/logs/coverage.info --output-directory build/logs/coverage_html
-
-# 📝 Create XML format for Codecov
-llvm-cov gcovr --root . --xml --output build/logs/coverage.xml
 
 echo "✅ All tests executed and logs saved."
