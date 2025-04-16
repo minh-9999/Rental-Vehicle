@@ -14,7 +14,7 @@
 
 <!-- License badge -->
 
-![GitHub](https://img.shields.io/github/license/minh-9999/Rental-Vehicle)
+![License](https://img.shields.io/github/license/minh-9999/Rental-Vehicle)
 
 <!-- Platform support -->
 
