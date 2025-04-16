@@ -11,7 +11,9 @@ REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$REPO_ROOT"
 
 echo "📁 Preparing logs directory..."
-mkdir -p build/logs || { echo "❌ Failed to create logs directory"; exit 1; } # Ensure logs directory exists
+# mkdir -p build/logs || { echo "❌ Failed to create logs directory"; exit 1; } # Ensure logs directory exists
+mkdir -p "$REPO_ROOT/build/logs" || { echo "❌ Failed to create logs directory"; exit 1; } # Ensure logs directory exists
+
 
 # 📦 Enable coverage flags (optional if already in CMakeLists)
 export CXXFLAGS="--coverage"
@@ -38,7 +40,8 @@ find . -name "*.gcno" -or -name "*.gcda" || echo "❌ No coverage data files fou
 # 📝 Collect code coverage data
 echo "📊 Collecting coverage data..."
 # llvm-cov gcovr --root . --xml --output build/logs/coverage.xml  # make sure to use the correct path for your project
-gcovr --root . --xml --output build/logs/coverage.xml
+# gcovr --root . --xml --output build/logs/coverage.xml
+gcovr --root "$REPO_ROOT" --xml --output "$REPO_ROOT/build/logs/coverage.xml"
 
 # ⬅️ return repo root to execute gcovr follow context
 cd "$REPO_ROOT"
