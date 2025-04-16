@@ -36,6 +36,8 @@ echo "📊 Collecting coverage data..."
 # llvm-cov gcovr --root . --xml --output build/logs/coverage.xml  # make sure to use the correct path for your project
 gcovr --root . --xml --output build/logs/coverage.xml
 
+# ⬅️ return repo root to execute gcovr follow context
+cd "$REPO_ROOT"
 
 # 📦 Check if coverage data was generated
 if [ -f "build/logs/coverage.xml" ]; then
