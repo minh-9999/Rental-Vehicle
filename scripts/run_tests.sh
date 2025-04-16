@@ -13,7 +13,7 @@ cd "$REPO_ROOT"
 echo "📁 Preparing logs directory..."
 mkdir -p build/logs || { echo "❌ Failed to create logs directory"; exit 1; } # Ensure logs directory exists
 
-# 📦 Ensure coverage flags are enabled for compilation (if using GCC/Clang)
+# 📦 Enable coverage flags (optional if already in CMakeLists)
 export CXXFLAGS="--coverage"
 export LDFLAGS="--coverage"
 
@@ -29,6 +29,10 @@ ctest -R "Integration" --output-on-failure | tee logs/integration_test.log || ec
 # 📦 Combine test logs into one file
 echo "📦 Combining test logs..."
 cat logs/*.log > logs/test.log || true
+
+
+echo "⚙️ Checking for .gcno/.gcda files..."
+find . -name "*.gcno" -or -name "*.gcda" || echo "❌ No coverage data files found!"
 
 
 # 📝 Collect code coverage data
