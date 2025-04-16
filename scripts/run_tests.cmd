@@ -18,9 +18,9 @@ REM === 🧪 Running Unit Tests ===
 echo Running Unit Tests...
 ctest -R Unit --output-on-failure > logs\unit_test.log 2>&1
 if errorlevel 1 (
-    echo ⚠️ Unit tests failed
-) 
-else (
+    echo ❌ Unit tests failed
+    exit /b 1
+) else (
     echo ✅ Unit tests passed
 )
 
@@ -28,9 +28,9 @@ REM === 🔌 Running Integration Tests ===
 echo Running Integration Tests...
 ctest -R Integration --output-on-failure > logs\integration_test.log 2>&1
 if errorlevel 1 (
-    echo ⚠️ Integration tests failed
-) 
-else (
+    echo ❌ Integration tests failed
+    exit /b 1
+) else (
     echo ✅ Integration tests passed
 )
 
@@ -47,20 +47,22 @@ gcovr --root . --xml --output logs\coverage.xml
 REM === 📦 Check if coverage data was generated ===
 if exist logs\coverage.xml (
     echo ✅ Coverage XML file created successfully.
-) 
-else (
+) else (
     echo ❌ Failed to create coverage XML file.
     exit /b 1
 )
 
 REM === 📊 Verifying content of coverage.xml ===
-for /f "delims=" %%i in (logs\coverage.xml) do set "content=%%i"
-if defined content (
-    echo ✅ coverage.xml has content.
-) 
-else (
+for /f "usebackq delims=" %%i in ("logs\coverage.xml") do (
+    set "line=%%i"
+    goto check
+)
+:check
+if not defined line (
     echo ❌ coverage.xml is empty.
     exit /b 1
+) else (
+    echo ✅ coverage.xml looks valid.
 )
 
 echo ✅ All tests executed, logs saved, and coverage collected.
