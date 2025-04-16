@@ -1,29 +1,36 @@
 # 🚗 Rental Vehicle System
 
 <!-- CI status badge -->
+
 ![CI](https://github.com/minh-9999/Rental-Vehicle/actions/workflows/cpp-multi-platform.yml/badge.svg)
 
 <!-- Code coverage badge -->
-[![codecov](https://codecov.io/gh/minh-9999/Rental-Vehicle/branch/main/graph/badge.svg)](https://codecov.io/gh/minh-9999/Rental-Vehicle)
+
+[![codecov](https://codecov.io/gh/minh-9999/Rental-Vehicle/branch/master/graph/badge.svg)](https://codecov.io/gh/minh-9999/Rental-Vehicle)
 
 <!-- Latest release badge -->
+
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/minh-9999/Rental-Vehicle)
 
 <!-- License badge -->
+
 ![GitHub](https://img.shields.io/github/license/minh-9999/Rental-Vehicle)
 
 <!-- Platform support -->
+
 ![Platform](https://img.shields.io/badge/Platform-Linux--Windows--MacOS-blue)
 
 <!-- CMake badge -->
+
 ![CMake](https://img.shields.io/badge/Build%20system-CMake-informational)
 
 <!-- C++ version -->
+
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue)
 
 <!-- Lines of code (optional but cool) -->
-![LOC](https://tokei.rs/b1/github/minh-9999/Rental-Vehicle)
 
+![LOC](https://tokei.rs/b1/github/minh-9999/Rental-Vehicle)
 
 A cross-platform C++ project for managing vehicle rentals, designed with clean architecture, JSON data persistence, unit/integration testing, and CI/CD using GitHub Actions.
 
@@ -56,7 +63,6 @@ cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-
 ## ✅ Run Tests
 
 cd script  
@@ -64,23 +70,19 @@ cd script
 
 Logs will be saved in build/logs/test.log.
 
-
 ## 🗂 Project Structure
 
-| Folder            | Description                                      |
-|-------------------|--------------------------------------------------|
-| `src/`            | Core source code                                 |
-| `template-test/`  | YAML files for test config                       |
-| `test/`           | Unit & Integration tests                         |
-| `script/`         | Test & build scripts                             |
-| `third_party/`    | External libraries (e.g., fmt, gtest)            |
-| `build/`          | CMake build output                               |
-| `resource/`       | Assets (icons, etc.)                             |
-| `CMakeLists.txt`  | CMake build configuration file                   |
-
-
+| Folder           | Description                           |
+| ---------------- | ------------------------------------- |
+| `src/`           | Core source code                      |
+| `template-test/` | YAML files for test config            |
+| `test/`          | Unit & Integration tests              |
+| `script/`        | Test & build scripts                  |
+| `third_party/`   | External libraries (e.g., fmt, gtest) |
+| `build/`         | CMake build output                    |
+| `resource/`      | Assets (icons, etc.)                  |
+| `CMakeLists.txt` | CMake build configuration file        |
 
 ## 📫 Contact
 
-📧 ngodinhhai.hcm@gmail.com  
-
+📧 ngodinhhai.hcm@gmail.com

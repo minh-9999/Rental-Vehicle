@@ -73,6 +73,13 @@ jobs:
         with:
           files: build/logs/coverage.xml
           name: codecov-${{ matrix.os }}
+          # token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage.xml as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: build/logs/coverage.xml
 
       - name: Check test log exists (Unix)
         if: runner.os != 'Windows'
