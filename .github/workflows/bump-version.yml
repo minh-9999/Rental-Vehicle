@@ -47,7 +47,10 @@ jobs:
           version="${version#v}"
           IFS='.' read -r major minor patch <<< "$version"
 
-          bump="${{ github.event.inputs.level || 'patch' }}"
+          bump="${{ github.event.inputs.level }}"
+          if [ -z "$bump" ]; then
+            bump="patch"
+          fi
 
           if [[ "$bump" == "major" ]]; then
             major=$((major + 1))
